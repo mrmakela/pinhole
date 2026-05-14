@@ -1,0 +1,2235 @@
+<!DOCTYPE html>
+<html lang="fi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>Neulanreikäkamera</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Lora:ital,wght@0,600;1,400&display=swap" rel="stylesheet">
+<!-- Apply theme before first paint to avoid flash -->
+<script>if(localStorage.getItem('ph2-theme')==='dark')document.documentElement.classList.add('dark');</script>
+<style>
+/* ── RESET & NO-OVERFLOW GUARANTEE ── */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { overflow-x: hidden; max-width: 100vw; }
+
+/* ── TOKENS ── */
+:root {
+  /* Page background: warm parchment */
+  --bg:        #ede8df;
+  --surface:   #f5f0e8;
+  --surface2:  #e8e2d8;
+  --border:    #cfc7b8;
+  --border2:   #bbb0a0;
+
+  --text:      #1c1710;
+  --text2:     #3a3020;
+  --text3:     #6a5c48;
+  --text4:     #9a8c78;
+
+  --amber:     #b87408;
+  --amber-bg:  #f8edcc;
+  --amber-bd:  #e0b84a;
+
+  --green:     #185e2c;
+  --green-bg:  #ddf0e4;
+  --green-bd:  #68b880;
+  --green-dk:  #0c3a1a;
+
+  --red:       #aa1e0c;
+  --red-bg:    #fae8e6;
+  --red-bd:    #d87060;
+
+  --nav-bg:    #1e1810;
+  --nav-text:  #ede6d4;
+  --nav-hi:    #e8a020;
+  --nav-line:  #d49018;
+  --nav-dim:   #8a7860;
+
+  --radius:    10px;
+  --radius-sm: 6px;
+  --shadow:    0 1px 3px rgba(0,0,0,0.09), 0 1px 2px rgba(0,0,0,0.06);
+  --shadow-md: 0 4px 12px rgba(0,0,0,0.11);
+}
+
+/* ── DARK MODE TOKENS ── */
+html.dark {
+  --bg:        #181410;
+  --surface:   #242018;
+  --surface2:  #2e2820;
+  --border:    #3a342a;
+  --border2:   #4a4238;
+
+  --text:      #f0e8d8;
+  --text2:     #d4c8b0;
+  --text3:     #a09070;
+  --text4:     #706050;
+
+  --amber:     #e8a828;
+  --amber-bg:  #2e2210;
+  --amber-bd:  #6a4a18;
+
+  --green:     #2a8040;
+  --green-bg:  #102818;
+  --green-bd:  #3a6a48;
+  --green-dk:  #78c890;
+
+  --red:       #d43020;
+  --red-bg:    #2a1010;
+  --red-bd:    #6a2820;
+
+  /* Nav is slightly darker than body in dark mode */
+  --nav-bg:    #0e0c08;
+  --nav-text:  #f0e8d8;
+  --nav-hi:    #e8a020;
+  --nav-line:  #c88818;
+  --nav-dim:   #706050;
+
+  --shadow:    0 1px 3px rgba(0,0,0,0.35), 0 1px 2px rgba(0,0,0,0.25);
+  --shadow-md: 0 4px 12px rgba(0,0,0,0.4);
+}
+
+/* Smooth theme transition on all properties that use CSS vars */
+body { transition: background-color 0.25s, color 0.25s; }
+.card, .panel, .camera-card, .entry-card, .diary-card, .stat-card, .modal,
+input, select, textarea, .notice, .chip, .tag, .empty, .btn-ghost {
+  transition: background-color 0.25s, border-color 0.25s, color 0.25s;
+}
+
+/* ── THEME TOGGLE BUTTON ── */
+.theme-toggle {
+  width: 36px; height: 36px;
+  border-radius: 50%;
+  background: rgba(255,255,255,0.1);
+  border: 1.5px solid rgba(255,255,255,0.18);
+  cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0;
+  transition: background 0.15s, border-color 0.15s;
+  position: relative;
+  overflow: hidden;
+}
+
+.theme-toggle:hover { background: rgba(255,255,255,0.18); border-color: rgba(255,255,255,0.3); }
+
+/* Sun icon (shown in dark mode — click to go light) */
+.theme-toggle .icon-sun,
+.theme-toggle .icon-moon { position: absolute; transition: opacity 0.2s, transform 0.2s; }
+
+.theme-toggle .icon-sun  { opacity: 0; transform: rotate(-40deg) scale(0.7); }
+.theme-toggle .icon-moon { opacity: 1; transform: rotate(0deg) scale(1); }
+
+html.dark .theme-toggle .icon-sun  { opacity: 1; transform: rotate(0deg) scale(1); }
+html.dark .theme-toggle .icon-moon { opacity: 0; transform: rotate(40deg) scale(0.7); }
+
+/* ── BASE ── */
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: 'Inter', system-ui, sans-serif;
+  font-size: 15px;
+  line-height: 1.6;
+  -webkit-text-size-adjust: 100%;
+}
+
+img, svg, video { max-width: 100%; display: block; }
+
+/* ── NAV ── */
+nav {
+  background: var(--nav-bg);
+  position: sticky; top: 0; z-index: 300;
+  border-bottom: 2px solid var(--nav-line);
+}
+
+.nav-brand-row {
+  padding: 12px 16px 8px;
+  display: flex; align-items: center; gap: 10px;
+  justify-content: space-between;
+}
+
+.nav-brand-left {
+  display: flex; align-items: center; gap: 10px;
+}
+
+.nav-logo {
+  width: 28px; height: 28px;
+  background: var(--nav-hi);
+  border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0;
+  position: relative;
+}
+
+/* Pinhole symbol — small dark circle inside amber circle */
+.nav-logo::after {
+  content: '';
+  width: 8px; height: 8px;
+  background: var(--nav-bg);
+  border-radius: 50%;
+  display: block;
+}
+
+.nav-title {
+  font-family: 'Lora', serif;
+  font-size: 17px; font-weight: 600;
+  color: var(--nav-text); letter-spacing: -0.01em;
+}
+
+.nav-title em { color: var(--nav-hi); font-style: italic; font-weight: 400; }
+
+/* Wrapping pill tabs — NO horizontal scroll */
+.nav-scroll {
+  padding: 0 12px 12px;
+}
+
+.nav-pills {
+  display: flex;
+  flex-wrap: wrap; /* wrap to next line, never overflow */
+  gap: 6px;
+}
+
+.nav-pill {
+  padding: 7px 13px;
+  border-radius: 20px;
+  border: 1.5px solid rgba(255,255,255,0.15);
+  background: none;
+  color: #c8b898; /* explicit light enough on dark nav */
+  font-family: 'Inter', sans-serif;
+  font-size: 13px; font-weight: 600;
+  letter-spacing: 0.01em;
+  cursor: pointer; white-space: nowrap;
+  transition: all 0.15s;
+  display: flex; align-items: center; gap: 5px;
+}
+
+.nav-pill:hover  { color: #f0e8d8; border-color: rgba(255,255,255,0.3); }
+.nav-pill.active { background: var(--nav-hi); border-color: var(--nav-hi); color: #1a1008; }
+
+/* ── MAIN ── */
+main {
+  max-width: 680px;
+  margin: 0 auto;
+  padding: 24px 16px 80px;
+  width: 100%;
+}
+
+.section { display: none; }
+.section.active { display: block; }
+
+/* ── TYPOGRAPHY ── */
+.page-title {
+  font-family: 'Lora', serif;
+  font-size: clamp(24px, 5vw, 32px);
+  font-weight: 600; line-height: 1.15;
+  color: var(--text); letter-spacing: -0.02em;
+  margin-bottom: 8px;
+}
+
+.page-lead {
+  font-size: 14px; color: var(--text2); line-height: 1.7;
+  margin-bottom: 28px;
+}
+
+.section-title {
+  font-family: 'Lora', serif;
+  font-size: 18px; font-weight: 600;
+  color: var(--text); letter-spacing: -0.01em;
+  margin: 32px 0 14px;
+}
+
+.section-title:first-of-type { margin-top: 0; }
+
+.label-sm {
+  font-size: 11px; font-weight: 600;
+  letter-spacing: 0.06em; text-transform: uppercase;
+  color: var(--text3);
+}
+
+/* ── CARDS ── */
+.card-list { display: flex; flex-direction: column; gap: 10px; margin-bottom: 28px; }
+
+.card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 16px 18px;
+  display: flex; gap: 14px; align-items: flex-start;
+  box-shadow: var(--shadow);
+}
+
+.card-num {
+  font-family: 'Lora', serif;
+  font-size: 22px; font-weight: 600;
+  color: var(--amber); line-height: 1;
+  flex-shrink: 0; min-width: 30px;
+  margin-top: 2px;
+}
+
+.card-body h3 {
+  font-size: 14px; font-weight: 700;
+  color: var(--text); margin-bottom: 3px;
+}
+
+.card-body p { font-size: 13px; color: var(--text2); line-height: 1.6; }
+
+/* grid for non-step cards */
+.card-grid2 {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(260px, 100%), 1fr));
+  gap: 10px; margin-bottom: 28px;
+}
+
+.card-grid2 .card { flex-direction: column; gap: 6px; }
+
+/* ── STEPS ── */
+.steps { display: flex; flex-direction: column; gap: 0; margin-bottom: 24px; }
+
+.step {
+  display: flex; gap: 14px;
+  padding: 14px 0;
+  border-bottom: 1px solid var(--border);
+  position: relative;
+}
+
+.step:last-child { border-bottom: none; }
+
+.step-num {
+  width: 28px; height: 28px; border-radius: 50%;
+  background: var(--nav-bg); color: var(--nav-hi);
+  font-size: 12px; font-weight: 700;
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0;
+}
+
+.step-body h3 { font-size: 14px; font-weight: 700; color: var(--text); margin-bottom: 4px; }
+.step-body p  { font-size: 13px; color: var(--text2); line-height: 1.65; }
+.step-body ul { margin-top: 6px; padding-left: 16px; font-size: 13px; color: var(--text2); line-height: 1.8; }
+
+/* ── NOTICE BOXES ── */
+.notice {
+  border-radius: var(--radius-sm);
+  padding: 13px 16px;
+  font-size: 13px; line-height: 1.7;
+  margin: 16px 0;
+  display: flex; gap: 10px; align-items: flex-start;
+}
+
+.notice-icon {
+  font-size: 11px; font-weight: 800;
+  flex-shrink: 0; margin-top: 2px;
+  width: 18px; height: 18px;
+  border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  letter-spacing: 0;
+}
+
+.notice-amber .notice-icon { background: #d4900a; color: #fff; }
+.notice-red   .notice-icon { background: var(--red); color: #fff; }
+.notice-green .notice-icon { background: var(--green); color: #fff; }
+
+.notice-body { flex: 1; min-width: 0; }
+.notice-body strong { font-weight: 700; color: inherit; }
+
+.notice-amber { background: var(--amber-bg); border: 1px solid var(--amber-bd); color: #5a3800; }
+.notice-red   { background: var(--red-bg);   border: 1px solid var(--red-bd);   color: #5a1008; }
+.notice-green { background: var(--green-bg); border: 1px solid var(--green-bd); color: var(--green-dk); }
+
+/* Dark mode: override hardcoded notice text colors */
+html.dark .notice-amber { color: #f0c870; }
+html.dark .notice-red   { color: #f09080; }
+html.dark .notice-green { color: var(--green-dk); }
+
+/* Dark mode: tag text override */
+html.dark .tag { color: #e0b860; }
+
+/* Dark mode: diary stars */
+html.dark .diary-stars { color: var(--amber); }
+
+/* ── SURFACE PANEL ── */
+.panel {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  overflow: hidden;
+  margin-bottom: 20px;
+  box-shadow: var(--shadow);
+}
+
+.panel-header {
+  background: var(--nav-bg);
+  padding: 14px 18px;
+  display: flex; align-items: center; gap: 8px;
+}
+
+.panel-header h3 {
+  font-family: 'Lora', serif;
+  font-size: 16px; font-weight: 600;
+  color: var(--nav-text); letter-spacing: -0.01em;
+}
+
+.panel-header .ph-sub {
+  font-size: 12px; color: var(--nav-dim); margin-top: 1px;
+}
+
+/* Dark mode: panel header sub needs lighter color */
+html.dark .panel-header .ph-sub { color: #807060; }
+html.dark .calc-result-sub { color: rgba(240,232,216,0.6); }
+
+.panel-body { padding: 18px; }
+
+/* ── KV ROWS (recipe / info) ── */
+.kv-list { display: flex; flex-direction: column; gap: 0; }
+
+.kv-row {
+  display: flex; justify-content: space-between;
+  padding: 8px 0; gap: 12px;
+  border-bottom: 1px solid var(--border);
+  font-size: 13px;
+}
+
+.kv-row:last-child { border-bottom: none; }
+.kv-key   { color: var(--text3); flex-shrink: 0; }
+.kv-val   { font-weight: 600; color: var(--text); text-align: right; word-break: break-word; }
+
+/* ── DATA TABLE ── */
+.data-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+}
+
+.data-table th {
+  background: var(--surface2);
+  color: var(--text3);
+  padding: 9px 12px; text-align: left;
+  font-size: 11px; font-weight: 700;
+  letter-spacing: 0.05em; text-transform: uppercase;
+  border-bottom: 1px solid var(--border);
+  white-space: nowrap;
+}
+
+.data-table td {
+  padding: 10px 12px;
+  border-bottom: 1px solid var(--border);
+  color: var(--text); vertical-align: top;
+  word-break: break-word;
+}
+
+.data-table tr:last-child td { border-bottom: none; }
+.data-table tr:hover td { background: var(--surface2); }
+
+/* Stacked cell layout for wide tables on mobile */
+.data-table .cell-stack { display: flex; flex-direction: column; gap: 2px; }
+.data-table .cell-label { font-size: 10px; font-weight: 600; letter-spacing: 0.05em; text-transform: uppercase; color: var(--text4); }
+.data-table .cell-val   { font-size: 13px; color: var(--text); }
+
+/* ── BADGE / TAG ── */
+.badge {
+  display: inline-flex; align-items: center; justify-content: center;
+  background: var(--red); color: #fff;
+  border-radius: 50%; width: 17px; height: 17px;
+  font-size: 10px; font-weight: 700;
+  margin-left: 4px;
+}
+
+.iso-tag {
+  background: var(--nav-bg); color: var(--nav-hi);
+  padding: 2px 8px; border-radius: 4px;
+  font-size: 11px; font-weight: 700; white-space: nowrap;
+}
+
+.status-pill {
+  display: inline-flex; align-items: center; gap: 5px;
+  padding: 3px 10px; border-radius: 20px;
+  font-size: 11px; font-weight: 700;
+}
+
+.status-pill.active { background: var(--green-bg); color: var(--green-dk); border: 1px solid var(--green-bd); }
+.status-pill.done   { background: var(--surface2); color: var(--text3); border: 1px solid var(--border); }
+
+/* ── FORMS ── */
+.form-stack  { display: flex; flex-direction: column; gap: 14px; }
+.form-row-2  { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.form-span   { grid-column: 1 / -1; }
+
+.field { display: flex; flex-direction: column; gap: 5px; }
+.field label { font-size: 11px; font-weight: 700; letter-spacing: 0.05em; text-transform: uppercase; color: var(--text3); }
+
+input[type="text"],
+input[type="number"],
+input[type="date"],
+input[type="datetime-local"],
+select, textarea {
+  width: 100%;
+  background: var(--surface);   /* warm off-white, not pure white */
+  border: 1.5px solid var(--border2);
+  border-radius: var(--radius-sm);
+  padding: 10px 12px;
+  font-family: 'Inter', sans-serif;
+  font-size: 14px; color: var(--text);
+  outline: none;
+  transition: border-color 0.15s, box-shadow 0.15s;
+  -webkit-appearance: none; appearance: none;
+}
+
+input:focus, select:focus, textarea:focus {
+  border-color: var(--amber);
+  box-shadow: 0 0 0 3px rgba(184,116,8,0.14);
+}
+
+select {
+  -webkit-appearance: auto;
+  appearance: auto;
+}
+
+textarea { resize: vertical; min-height: 80px; line-height: 1.6; }
+
+/* Panel-dark: use warm surface for inputs, not pure white */
+.panel-dark input, .panel-dark select {
+  background: var(--surface);
+  border-color: var(--border2);
+  color: var(--text);
+  -webkit-appearance: auto;
+  appearance: auto;
+}
+
+.panel-dark input:focus, .panel-dark select:focus {
+  border-color: var(--amber);
+  box-shadow: 0 0 0 3px rgba(184,116,8,0.14);
+}
+
+.panel-dark select option { background: var(--surface); color: var(--text); }
+.panel-dark label { color: #c8aa80; font-size: 12px; }
+
+/* ── BUTTONS ── */
+.btn {
+  display: inline-flex; align-items: center; justify-content: center; gap: 6px;
+  padding: 10px 18px; border-radius: var(--radius-sm);
+  border: none; cursor: pointer;
+  font-family: 'Inter', sans-serif;
+  font-size: 13px; font-weight: 700;
+  letter-spacing: 0.01em;
+  transition: all 0.15s;
+  min-height: 42px; white-space: nowrap;
+}
+
+.btn-primary { background: var(--nav-bg); color: var(--nav-text); }
+.btn-primary:hover { background: #2e2016; }
+
+.btn-amber   { background: var(--amber); color: #fff; }
+.btn-amber:hover { background: #a86c08; }
+
+.btn-green   { background: var(--green); color: #d8f0e0; }
+.btn-green:hover { background: var(--green-dk); }
+
+.btn-red     { background: var(--red); color: #fff; }
+.btn-red:hover { background: #941808; }
+
+.btn-ghost   { background: var(--surface2); color: var(--text2); border: 1.5px solid var(--border2); }
+.btn-ghost:hover { background: var(--border); color: var(--text); }
+
+.btn-sm { padding: 6px 12px; font-size: 12px; min-height: 34px; }
+
+.btn-row { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 18px; }
+
+/* ── CALC RESULT ── */
+.calc-result {
+  background: var(--nav-hi);
+  color: #1a1008;
+  border-radius: var(--radius-sm);
+  padding: 14px 18px;
+  margin-top: 16px;
+}
+
+.calc-result-num {
+  font-family: 'Lora', serif;
+  font-size: 28px; font-weight: 600;
+  line-height: 1.1;
+}
+
+.calc-result-sub {
+  font-size: 12px; font-weight: 600;
+  color: rgba(26,16,0,0.6);
+  margin-top: 4px;
+}
+
+/* ── DIAGRAM ── */
+.diagram {
+  background: var(--nav-bg);
+  border-radius: var(--radius);
+  padding: 24px 16px;
+  margin: 16px 0;
+  overflow: hidden;
+}
+
+/* ── TRACKER ── */
+.camera-list { display: flex; flex-direction: column; gap: 10px; margin-bottom: 20px; }
+
+.camera-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 14px 16px;
+  box-shadow: var(--shadow);
+}
+
+.camera-card-top {
+  display: flex; align-items: flex-start;
+  justify-content: space-between; gap: 8px;
+  margin-bottom: 8px;
+}
+
+.camera-name { font-size: 15px; font-weight: 700; color: var(--text); line-height: 1.2; }
+.camera-meta { font-size: 12px; color: var(--text3); margin-top: 2px; line-height: 1.5; }
+
+.camera-progress { margin: 10px 0 8px; }
+.progress-bar { background: var(--surface2); border-radius: 4px; height: 6px; overflow: hidden; }
+.progress-fill { height: 6px; border-radius: 4px; transition: width 0.4s; }
+.progress-labels { display: flex; justify-content: space-between; margin-top: 4px; }
+.progress-pct   { font-size: 11px; font-weight: 700; }
+.progress-time  { font-size: 11px; color: var(--text4); }
+
+.camera-actions { display: flex; gap: 6px; flex-wrap: wrap; }
+
+/* ── STATS ── */
+.stats-grid { display: grid; grid-template-columns: repeat(3,1fr); gap: 10px; margin-top: 20px; margin-bottom: 4px; }
+
+.stat-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 14px;
+  text-align: center;
+  box-shadow: var(--shadow);
+}
+
+.stat-num   { font-family: 'Lora', serif; font-size: 36px; color: var(--text); line-height: 1; }
+.stat-label { font-size: 11px; font-weight: 600; color: var(--text4); margin-top: 3px; text-transform: uppercase; letter-spacing: 0.05em; }
+
+/* ── WEATHER / REMINDER ENTRIES ── */
+.entry-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 14px 16px;
+  margin-bottom: 10px;
+  display: flex; gap: 12px; align-items: flex-start;
+  box-shadow: var(--shadow);
+}
+
+.entry-icon { font-size: 24px; flex-shrink: 0; line-height: 1; margin-top: 2px; }
+.entry-body { flex: 1; min-width: 0; }
+.entry-title { font-size: 14px; font-weight: 700; color: var(--text); line-height: 1.3; }
+.entry-meta  { font-size: 12px; color: var(--text3); margin-top: 3px; line-height: 1.5; }
+.entry-note  { font-size: 13px; color: var(--text2); margin-top: 5px; line-height: 1.6; }
+
+.entry-dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; margin-top: 4px; }
+.dot-green  { background: var(--green); }
+.dot-amber  { background: var(--amber); }
+.dot-red    { background: var(--red); }
+.dot-done   { background: var(--border); }
+
+/* ── DIARY ── */
+.diary-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 16px;
+  margin-bottom: 10px;
+  box-shadow: var(--shadow);
+}
+
+.diary-header {
+  display: flex; align-items: center;
+  justify-content: space-between; gap: 8px;
+  margin-bottom: 10px;
+  flex-wrap: wrap;
+}
+
+.diary-date { font-size: 12px; font-weight: 700; color: var(--text3); text-transform: uppercase; letter-spacing: 0.05em; }
+.diary-stars { color: var(--amber); font-size: 15px; letter-spacing: 1px; }
+
+.diary-chips { display: flex; flex-wrap: wrap; gap: 6px; margin: 8px 0; }
+.chip {
+  padding: 3px 10px; border-radius: 20px;
+  background: var(--surface2); border: 1px solid var(--border);
+  font-size: 11px; font-weight: 600; color: var(--text3);
+}
+
+.diary-text { font-size: 14px; color: var(--text2); line-height: 1.7; }
+.diary-tags { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 10px; }
+.tag {
+  padding: 3px 10px; border-radius: 20px;
+  background: var(--amber-bg); border: 1px solid var(--amber-bd);
+  font-size: 11px; font-weight: 600; color: #5a3800;
+}
+
+/* ── EMPTY STATE ── */
+.empty {
+  padding: 40px 20px; text-align: center;
+  background: var(--surface2);
+  border: 1.5px dashed var(--border2);
+  border-radius: var(--radius);
+}
+
+.empty-text  { font-size: 14px; color: var(--text3); font-style: italic; }
+
+/* ── MODAL ── */
+.overlay {
+  display: none; position: fixed; inset: 0;
+  background: rgba(10,8,4,0.6);
+  z-index: 500; align-items: flex-end; justify-content: center;
+}
+@media (min-width: 560px) { .overlay { align-items: center; } }
+.overlay.open { display: flex; }
+
+.modal {
+  background: var(--surface); width: 100%; max-width: 520px;
+  border-radius: var(--radius) var(--radius) 0 0;
+  max-height: 90vh; overflow-y: auto;
+  border-top: 3px solid var(--nav-hi);
+}
+@media (min-width: 560px) { .modal { border-radius: var(--radius); } }
+
+.modal-header {
+  padding: 18px 20px 0;
+  display: flex; align-items: center; justify-content: space-between;
+}
+
+.modal-header h3 { font-family: 'Lora', serif; font-size: 18px; font-weight: 600; color: var(--text); }
+
+.modal-close {
+  width: 32px; height: 32px; border-radius: 50%;
+  background: var(--surface2); border: none; cursor: pointer;
+  font-size: 16px; color: var(--text3);
+  display: flex; align-items: center; justify-content: center;
+  transition: background 0.15s;
+}
+.modal-close:hover { background: var(--border); }
+
+.modal-body { padding: 18px 20px 24px; }
+.modal-footer { padding: 0 20px 20px; display: flex; gap: 8px; justify-content: flex-end; }
+
+@media (max-width: 559px) {
+  .form-row-2 { grid-template-columns: 1fr; }
+}
+
+/* ── DIVIDER ── */
+.divider { border: none; border-top: 1px solid var(--border); margin: 24px 0; }
+
+/* ── RECIPE GRID (2-col on bigger) ── */
+.recipe-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(280px, 100%), 1fr));
+  gap: 12px; margin-bottom: 24px;
+}
+
+/* ── MATERIAL TABLE wraps responsively ── */
+.mat-wrap { overflow-x: auto; -webkit-overflow-scrolling: touch; border-radius: var(--radius); border: 1px solid var(--border); box-shadow: var(--shadow); margin-bottom: 20px; }
+.mat-wrap .data-table { min-width: 0; }
+
+/* On narrow screens, transform table to card list */
+@media (max-width: 540px) {
+  .table-cards .data-table,
+  .table-cards thead { display: none; }
+
+  .table-cards-list { display: flex; flex-direction: column; gap: 10px; }
+}
+
+@media (min-width: 541px) {
+  .table-cards-list { display: none; }
+}
+
+/* Small utility */
+.mt8  { margin-top: 8px; }
+.mt16 { margin-top: 16px; }
+.mt24 { margin-top: 24px; }
+</style>
+</head>
+<body>
+
+<nav>
+  <div class="nav-brand-row">
+    <div class="nav-brand-left">
+      <div class="nav-logo"></div>
+      <div class="nav-title"><em>Neulanreikä</em></div>
+    </div>
+    <button type="button" class="theme-toggle" onclick="toggleTheme()" aria-label="Vaihda teema" title="Vaihda vaalea / tumma">
+      <svg class="icon-sun" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#f0e8d8" stroke-width="2" stroke-linecap="round">
+        <circle cx="12" cy="12" r="4"/><line x1="12" y1="2" x2="12" y2="5"/><line x1="12" y1="19" x2="12" y2="22"/>
+        <line x1="4.22" y1="4.22" x2="6.34" y2="6.34"/><line x1="17.66" y1="17.66" x2="19.78" y2="19.78"/>
+        <line x1="2" y1="12" x2="5" y2="12"/><line x1="19" y1="12" x2="22" y2="12"/>
+        <line x1="4.22" y1="19.78" x2="6.34" y2="17.66"/><line x1="17.66" y1="6.34" x2="19.78" y2="4.22"/>
+      </svg>
+      <svg class="icon-moon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#c8b898" stroke-width="2" stroke-linecap="round">
+        <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
+      </svg>
+    </button>
+  </div>
+  <div class="nav-scroll">
+    <div class="nav-pills">
+      <button type="button" class="nav-pill active"    onclick="go('opas',this)">Opas</button>
+      <button type="button" class="nav-pill"           onclick="go('seuranta',this)">Seuranta</button>
+      <button type="button" class="nav-pill"           onclick="go('laskuri',this)">Laskuri</button>
+      <button type="button" class="nav-pill"           onclick="go('materiaalit',this)">Materiaalit</button>
+      <button type="button" class="nav-pill"           onclick="go('kehitys',this)">Kehitys</button>
+      <button type="button" class="nav-pill"           onclick="go('saatiloki',this)">Säätiloki</button>
+      <button type="button" class="nav-pill" id="pill-muist" onclick="go('muistutukset',this)">Muistutukset</button>
+      <button type="button" class="nav-pill"           onclick="go('paivakirja',this)">Päiväkirja</button>
+      <button type="button" class="nav-pill"           onclick="go('tiedot',this)">Tiedot</button>
+    </div>
+  </div>
+</nav>
+
+<main>
+
+<!-- ====== OPAS ====== -->
+<section id="opas" class="section active">
+  <h1 class="page-title">Neulanreikäkamera</h1>
+  <p class="page-lead">Täydellinen opas kameran rakentamiseen, käyttöön ja kuvaamiseen — valoa, reikä ja paperi riittävät.</p>
+
+  <h2 class="section-title">Mitä tarvitset</h2>
+  <div class="card-grid2">
+    <div class="card"><div class="card-num">01</div><div class="card-body"><h3>Valonapitävä kotelo</h3><p>Tölkki, pahvilaatikko tai puulaatikko. Ei valoa sisään muualta kuin reiästä.</p></div></div>
+    <div class="card"><div class="card-num">02</div><div class="card-body"><h3>Neulanreikälevy</h3><p>Ohut alumiinifolio tai virvoitusjuomatölkki — ohut metalli antaa pyöreimmän reiän.</p></div></div>
+    <div class="card"><div class="card-num">03</div><div class="card-body"><h3>Neula tai nasta</h3><p>Ompelunneula (~0,3 mm) antaa hyvän f-luvun useimmille kotelokokoille.</p></div></div>
+    <div class="card"><div class="card-num">04</div><div class="card-body"><h3>Musta maali tai teippi</h3><p>Sisäpinnat mattamustaksi heijastusten estämiseksi. Sähköteippi toimii.</p></div></div>
+    <div class="card"><div class="card-num">05</div><div class="card-body"><h3>Suljin</h3><p>Pala mustaa kartonkia tai teippiä reiän päällä. Magneettiläppä toimii myös.</p></div></div>
+    <div class="card"><div class="card-num">06</div><div class="card-body"><h3>Valotusmateriaaali</h3><p>RC-paperi, lith-paperi, filmikalvo tai vanhentuneet arkit. Ks. Materiaalit.</p></div></div>
+  </div>
+
+  <h2 class="section-title">Rakentaminen</h2>
+  <div class="steps">
+    <div class="step"><div class="step-num">1</div><div class="step-body"><h3>Valmistele kotelo</h3><p>Maalaa kaikki sisäpinnat mattamustaksi. Tarkista jokainen sauma hämärässä — tiivistä saumat mustalla teipillä.</p></div></div>
+    <div class="step"><div class="step-num">2</div><div class="step-body"><h3>Tee neulanreikä</h3><p>Leikkaa 2×2 cm pala alumiinifoliota tasaiselle alustalle. Pistä neula varovaisesti pyöritellen — tavoite on pyöreä, sileäreunainen reikä.</p><ul><li>Tarkista reikä suurennuslasilla</li><li>Reunoja voi hioa hienolla hiekkapaperilla</li></ul></div></div>
+    <div class="step"><div class="step-num">3</div><div class="step-body"><h3>Kiinnitä reikälevy</h3><p>Leikkaa kotelon etuseinään ~1×1 cm reikä. Kiinnitä reikälevy mustalla teipillä niin että neulanreikä on täsmälleen keskellä.</p></div></div>
+    <div class="step"><div class="step-num">4</div><div class="step-body"><h3>Tee suljin</h3><p>Pala mustaa kartonkia reiän päälle — sen pitää voida nostaa ja laskea helposti.</p></div></div>
+    <div class="step"><div class="step-num">5</div><div class="step-body"><h3>Testaa pimeässä</h3><p>Avaa suljin pimeässä — jos valoa ei pääse muualta kuin reiästä, rakentaminen onnistui.</p></div></div>
+    <div class="step"><div class="step-num">6</div><div class="step-body"><h3>Lisää materiaaliteline</h3><p>Tasainen alusta paperia tai filmiä varten kotelon taustapuolelle. Varmista että se pysyy suorassa.</p></div></div>
+  </div>
+
+  <div class="diagram">
+    <svg viewBox="0 0 560 180" fill="none" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:560px">
+      <rect x="95" y="25" width="310" height="130" stroke="#c8820a" stroke-width="1.5" fill="none" rx="2"/>
+      <rect x="390" y="25" width="15" height="130" fill="#2a1c08"/>
+      <rect x="393" y="38" width="5" height="104" fill="#f7f4ef" opacity="0.85"/>
+      <circle cx="100" cy="90" r="3.5" fill="#e8a020"/>
+      <line x1="15" y1="50"  x2="100" y2="90" stroke="#6a5a40" stroke-width="1" stroke-dasharray="5 3"/>
+      <line x1="15" y1="90"  x2="100" y2="90" stroke="#6a5a40" stroke-width="1.5" stroke-dasharray="5 3"/>
+      <line x1="15" y1="130" x2="100" y2="90" stroke="#6a5a40" stroke-width="1" stroke-dasharray="5 3"/>
+      <line x1="100" y1="90" x2="394" y2="58"  stroke="#e8a020" stroke-width="1" opacity="0.65"/>
+      <line x1="100" y1="90" x2="394" y2="90"  stroke="#e8a020" stroke-width="1.5" opacity="0.85"/>
+      <line x1="100" y1="90" x2="394" y2="122" stroke="#e8a020" stroke-width="1" opacity="0.65"/>
+      <text x="18"  y="82"  fill="#8a7860" font-family="Inter" font-size="11" font-weight="600">Kohde</text>
+      <text x="84"  y="170" fill="#e8a020" font-family="Inter" font-size="11" font-weight="700">Reikä</text>
+      <text x="366" y="170" fill="#8a7860" font-family="Inter" font-size="11" font-weight="600">Filmi</text>
+      <line x1="100" y1="155" x2="394" y2="155" stroke="#3a2e1a" stroke-width="1"/>
+      <text x="247" y="170" fill="#5a4a30" font-family="Inter" font-size="10" font-weight="500" text-anchor="middle">Polttoväli (f)</text>
+    </svg>
+  </div>
+
+  <h2 class="section-title">Kuvaaminen</h2>
+  <div class="notice notice-amber"><div class="notice-icon">i</div><div class="notice-body">Neulanreikäkamera on f/100–f/300 alueella — tarvitsee paljon valoa. Päivänvalossa valotus on tyypillisesti sekunteja, hämärässä tunteja tai päiviä.</div></div>
+
+  <div class="steps">
+    <div class="step"><div class="step-num">1</div><div class="step-body"><h3>Vakaa alusta</h3><p>Kolmijalka tai tukeva pinta. Tärinä pilaa kuvan — älä koske kameraan valotuksen aikana.</p></div></div>
+    <div class="step"><div class="step-num">2</div><div class="step-body"><h3>Avaa suljin</h3><p>Nosta suljin rauhallisesti. Merkitse aika muistiin. Laske alas kun aika on täynnä.</p></div></div>
+    <div class="step"><div class="step-num">3</div><div class="step-body"><h3>Liike ja aika</h3><p>Liikkuvat kohteet jäävät haamuksi tai katoavat — tätä voi käyttää taiteellisesti.</p></div></div>
+    <div class="step"><div class="step-num" style="font-size:10px">S</div><div class="step-body"><h3>Solargrafia — kuukausien valotus</h3><p>Kiinnitä kamera etelään osoittavaan seinään tai tolppaan. Käytä vahvaa teippiä tai ruuveja. Hae kamera pimeässä ja skannaa heti — kuva näkyy hetken ennen kuin tummuu.</p></div></div>
+  </div>
+  <div class="notice notice-red"><div class="notice-icon">!</div><div class="notice-body">Kun avaat kameran valottuneen paperin kanssa, tee se pimeässä tai punaisessa valossa. Kehittämätön paperi tummuu nopeasti.</div></div>
+</section>
+
+<!-- ====== SEURANTA ====== -->
+<section id="seuranta" class="section">
+  <h1 class="page-title">Kamera-seuranta</h1>
+  <p class="page-lead">Merkitse missä kamerasi ovat, milloin ne asetettiin ja kuinka kauan ne ovat valottuneet.</p>
+
+  <div class="btn-row">
+    <button type="button" class="btn btn-green" onclick="openM('tracker-modal')">+ Lisää kamera</button>
+    <button type="button" class="btn btn-ghost" onclick="renderTracker()">↻ Päivitä</button>
+    <button type="button" class="btn btn-ghost" onclick="exportCSV()">Vie CSV</button>
+  </div>
+
+  <div id="camera-empty" class="empty"><div class="empty-text">Ei kameroita seurannassa — lisää ensimmäinen!</div></div>
+  <div id="camera-list" class="camera-list" style="display:none"></div>
+
+  <div id="stats-row" style="display:none">
+    <div class="stats-grid">
+      <div class="stat-card"><div class="stat-num" id="stat-active">0</div><div class="stat-label">Aktiivista</div></div>
+      <div class="stat-card"><div class="stat-num" id="stat-done">0</div><div class="stat-label">Valmiita</div></div>
+      <div class="stat-card"><div class="stat-num" id="stat-total">0</div><div class="stat-label">Yhteensä</div></div>
+    </div>
+  </div>
+</section>
+
+<!-- ====== LASKURI ====== -->
+<section id="laskuri" class="section">
+  <h1 class="page-title">Valotusaikalaskuri</h1>
+  <p class="page-lead">Laske suositeltava valotusaika ja neulanreiän optimikoko.</p>
+
+  <div class="panel">
+    <div class="panel-header">
+      <div>
+        <h3>f-luku &amp; valotusaika</h3>
+        <div class="ph-sub">Syötä kameran mitat</div>
+      </div>
+    </div>
+    <div class="panel-body">
+      <div class="form-stack">
+        <div class="field"><label>Polttoväli — etäisyys taustaseinälle (mm)</label><input type="number" id="focal" value="150" min="10" oninput="calcExposure()"></div>
+        <div class="field"><label>Neulanreiän halkaisija (mm)</label><input type="number" id="aperture" value="0.3" step="0.05" min="0.1" oninput="calcExposure()"></div>
+        <div class="field"><label>Paperin / filmin ISO</label>
+          <select id="iso" onchange="calcExposure()">
+            <option value="1">Lith-paperi ~ISO 1–3</option>
+            <option value="3" selected>RC-paperi ISO 3–6</option>
+            <option value="25">Slow film ISO 25</option>
+            <option value="100">Film ISO 100</option>
+            <option value="400">Film ISO 400</option>
+          </select>
+        </div>
+        <div class="field"><label>Valaistusolosuhteet</label>
+          <select id="light" onchange="calcExposure()">
+            <option value="100000">Kirkas auringonpaiste</option>
+            <option value="50000" selected>Päivänvalo, pilvet</option>
+            <option value="10000">Varjoisa / puolipilvi</option>
+            <option value="1000">Sisätila, lähellä ikkunaa</option>
+            <option value="200">Sisätila, keinovalot</option>
+            <option value="10">Hämärä / auringonlasku</option>
+          </select>
+        </div>
+        <div class="calc-result">
+          <div class="calc-result-num" id="calc-num">— s</div>
+          <div class="calc-result-sub" id="calc-sub">f/—</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="notice notice-amber"><div class="notice-icon">!</div><div class="notice-body"><strong>Resiprositeettivika:</strong> Yli ~1 s valotuksissa kerro tulos kertoimella: 1–10 s → ×1,5 · 10–100 s → ×2 · 100 s+ → ×3–4</div></div>
+
+  <div class="panel mt16">
+    <div class="panel-header">
+      <div><h3>Optimaalinen reiän koko</h3><div class="ph-sub">Rayleigh-kaava: d = 1,9 × √(λ × f)</div></div>
+    </div>
+    <div class="panel-body">
+      <div class="form-stack">
+        <div class="field"><label>Polttoväli (mm)</label><input type="number" id="opt-focal" value="150" min="10" oninput="calcOptimal()"></div>
+        <div class="calc-result">
+          <div class="calc-result-num" id="opt-num">— mm</div>
+          <div class="calc-result-sub" id="opt-sub">Optimaalinen halkaisija</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="notice notice-amber"><div class="notice-icon">i</div><div class="notice-body">Käytännössä ±30 % optimista toimii hyvin.</div></div>
+
+  <h2 class="section-title">f-luku kotelokoon mukaan</h2>
+  <div class="panel"><div class="panel-body" style="padding:0">
+    <table class="data-table">
+      <thead><tr><th>f-luku</th><th>Tyypillinen kotelo</th></tr></thead>
+      <tbody>
+        <tr><td>f/100–150</td><td>Pieni kahvitölkki</td></tr>
+        <tr><td>f/150–250</td><td>Kenkälaatikko</td></tr>
+        <tr><td>f/250–350</td><td>Iso pahvilaatikko</td></tr>
+        <tr><td>f/350–600</td><td>Iso puulaatikko / huone</td></tr>
+      </tbody>
+    </table>
+  </div></div>
+</section>
+
+<!-- ====== MATERIAALIT ====== -->
+<section id="materiaalit" class="section">
+  <h1 class="page-title">Paperi &amp; Filmi</h1>
+  <p class="page-lead">Eri materiaalien ominaisuudet ja erityispiirteet neulanreikäkuvauksessa.</p>
+
+  <h2 class="section-title">Paperit</h2>
+  <div class="card-list">
+    <div class="card"><div class="card-body" style="width:100%">
+      <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;margin-bottom:6px">
+        <h3 style="margin:0">RC-paperi</h3><span class="iso-tag">ISO 3–6</span>
+      </div>
+      <p style="font-size:13px;color:var(--text2)">Yleisin valinta, hyvä aloittelijalle. Helppo leikata pimeässä, antaa negatiivin.</p>
+      <div class="kv-list mt8">
+        <div class="kv-row"><span class="kv-key">Kehitys</span><span class="kv-val">Paperikehitin + fiksaus</span></div>
+        <div class="kv-row"><span class="kv-key">Erityistä</span><span class="kv-val">Kestää käsittelyä, helppo aloittelija</span></div>
+      </div>
+    </div></div>
+    <div class="card"><div class="card-body" style="width:100%">
+      <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;margin-bottom:6px">
+        <h3 style="margin:0">FB-paperi (fibre base)</h3><span class="iso-tag">ISO 3–8</span>
+      </div>
+      <p style="font-size:13px;color:var(--text2)">Laadukas, pitkäikäinen. Kaunis matta tai kiiltopinta.</p>
+      <div class="kv-list mt8">
+        <div class="kv-row"><span class="kv-key">Kehitys</span><span class="kv-val">Pidempi kiinnitys ja pesu</span></div>
+        <div class="kv-row"><span class="kv-key">Erityistä</span><span class="kv-val">Hitaampi kuivua kuin RC</span></div>
+      </div>
+    </div></div>
+    <div class="card"><div class="card-body" style="width:100%">
+      <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;margin-bottom:6px">
+        <h3 style="margin:0">Lith-paperi</h3><span class="iso-tag">ISO 1–3</span>
+      </div>
+      <p style="font-size:13px;color:var(--text2)">Solargrafia — viikot tai kuukaudet valotusaikaa. Ei kehitetä, skannataan suoraan.</p>
+      <div class="kv-list mt8">
+        <div class="kv-row"><span class="kv-key">Kehitys</span><span class="kv-val">Ei kehitystä — skannaa heti!</span></div>
+        <div class="kv-row"><span class="kv-key">Erityistä</span><span class="kv-val">Kauniit luontaisvärit, kuva häipyy valossa</span></div>
+      </div>
+    </div></div>
+    <div class="card"><div class="card-body" style="width:100%">
+      <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;margin-bottom:6px">
+        <h3 style="margin:0">Cyanotype</h3><span class="iso-tag">~ISO 0,5</span>
+      </div>
+      <p style="font-size:13px;color:var(--text2)">Sininen sävy, reagoi vain UV-valoon. Täysin kemikaalivapaa kehitys.</p>
+      <div class="kv-list mt8">
+        <div class="kv-row"><span class="kv-key">Kehitys</span><span class="kv-val">Vesihuuhtelu 5 min</span></div>
+        <div class="kv-row"><span class="kv-key">Erityistä</span><span class="kv-val">Loistava aurinkovalolle</span></div>
+      </div>
+    </div></div>
+  </div>
+
+  <h2 class="section-title">Filmit</h2>
+  <div class="card-list">
+    <div class="card"><div class="card-body" style="width:100%">
+      <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;margin-bottom:4px">
+        <h3 style="margin:0">Ilford HP5+</h3><span class="iso-tag">ISO 400</span>
+      </div>
+      <p style="font-size:13px;color:var(--text2)">Hyvä yleisfilmi. Laajalatitudininen — anteeksianto ylivalotukselle.</p>
+    </div></div>
+    <div class="card"><div class="card-body" style="width:100%">
+      <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;margin-bottom:4px">
+        <h3 style="margin:0">Ilford Ortho+</h3><span class="iso-tag">ISO 80</span>
+      </div>
+      <p style="font-size:13px;color:var(--text2)">Ortokormaattinen — ei reagoi punaiseen. Voidaan käsitellä punaisessa valossa pimeikössä.</p>
+    </div></div>
+    <div class="card"><div class="card-body" style="width:100%">
+      <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;margin-bottom:4px">
+        <h3 style="margin:0">Kodak TMAX 100</h3><span class="iso-tag">ISO 100</span>
+      </div>
+      <p style="font-size:13px;color:var(--text2)">Tarkka, hieno rakenne — parhaat yksityiskohdat, mutta pitkä valotusaika.</p>
+    </div></div>
+    <div class="card"><div class="card-body" style="width:100%">
+      <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;margin-bottom:4px">
+        <h3 style="margin:0">Harman Direct Positive</h3><span class="iso-tag">ISO 3–6</span>
+      </div>
+      <p style="font-size:13px;color:var(--text2)">Suoraan positiivi — uniikki yksittäinen vedos suoraan kamerasta.</p>
+    </div></div>
+  </div>
+  <div class="notice notice-amber"><div class="notice-icon">i</div><div class="notice-body">Vanhentuneet paperit ja filmit toimivat usein loistavasti — alhainen kontrasti ja erikoinen sävy voi olla juuri sitä mitä haluat!</div></div>
+</section>
+
+<!-- ====== KEHITYS ====== -->
+<section id="kehitys" class="section">
+  <h1 class="page-title">Kehitysreseptit</h1>
+  <p class="page-lead">Kehitysliuosten sekoitussuhteet, ajat ja lämpötilat eri materiaaleille.</p>
+
+  <div class="recipe-grid">
+    <div class="panel"><div class="panel-header"><h3>Dektol — RC/FB</h3></div><div class="panel-body"><div class="kv-list">
+      <div class="kv-row"><span class="kv-key">Laimennos</span><span class="kv-val">1+2</span></div>
+      <div class="kv-row"><span class="kv-key">Lämpötila</span><span class="kv-val">20 °C</span></div>
+      <div class="kv-row"><span class="kv-key">Kehitys</span><span class="kv-val">1,5–2 min</span></div>
+      <div class="kv-row"><span class="kv-key">Stoppi</span><span class="kv-val">30 sek (etikka 1+20)</span></div>
+      <div class="kv-row"><span class="kv-key">Fiksaus</span><span class="kv-val">3–5 min</span></div>
+      <div class="kv-row"><span class="kv-key">Pesu</span><span class="kv-val">5–10 min virtaavassa</span></div>
+    </div></div></div>
+
+    <div class="panel"><div class="panel-header"><h3>Ilford Multigrade</h3></div><div class="panel-body"><div class="kv-list">
+      <div class="kv-row"><span class="kv-key">Laimennos</span><span class="kv-val">1+9 tai 1+14</span></div>
+      <div class="kv-row"><span class="kv-key">Lämpötila</span><span class="kv-val">20 °C</span></div>
+      <div class="kv-row"><span class="kv-key">Kehitys</span><span class="kv-val">60–90 sek (1+9)</span></div>
+      <div class="kv-row"><span class="kv-key">Stoppi</span><span class="kv-val">30 sek</span></div>
+      <div class="kv-row"><span class="kv-key">Fiksaus</span><span class="kv-val">2–4 min</span></div>
+      <div class="kv-row"><span class="kv-key">Huomio</span><span class="kv-val">Ei lith-kehitykseen</span></div>
+    </div></div></div>
+
+    <div class="panel"><div class="panel-header"><h3>Lith-kehitys</h3></div><div class="panel-body"><div class="kv-list">
+      <div class="kv-row"><span class="kv-key">Kehitin A+B</span><span class="kv-val">1+1+30–50 vettä</span></div>
+      <div class="kv-row"><span class="kv-key">Lämpötila</span><span class="kv-val">22–26 °C</span></div>
+      <div class="kv-row"><span class="kv-key">Kehitys</span><span class="kv-val">3–12 min (seuraa!)</span></div>
+      <div class="kv-row"><span class="kv-key">Sävy</span><span class="kv-val">Kultainen / vaaleanpunainen</span></div>
+      <div class="kv-row"><span class="kv-key">Vinkki</span><span class="kv-val">Vanhentunut paperi = parempi</span></div>
+    </div></div></div>
+
+    <div class="panel"><div class="panel-header"><h3>D-76 / ID-11 — filmi</h3></div><div class="panel-body"><div class="kv-list">
+      <div class="kv-row"><span class="kv-key">Laimennos</span><span class="kv-val">1+1 tai käyttövalmis</span></div>
+      <div class="kv-row"><span class="kv-key">Lämpötila</span><span class="kv-val">20 °C</span></div>
+      <div class="kv-row"><span class="kv-key">HP5+ 400</span><span class="kv-val">11 min (1+1)</span></div>
+      <div class="kv-row"><span class="kv-key">TMAX 100</span><span class="kv-val">8 min (1+1)</span></div>
+      <div class="kv-row"><span class="kv-key">Agitaatio</span><span class="kv-val">30 sek aluksi, 10 sek/min</span></div>
+    </div></div></div>
+
+    <div class="panel"><div class="panel-header"><h3>Cyanotype</h3></div><div class="panel-body"><div class="kv-list">
+      <div class="kv-row"><span class="kv-key">Liuos A</span><span class="kv-val">Rautaammoniaksitraatti 20 g/100 ml</span></div>
+      <div class="kv-row"><span class="kv-key">Liuos B</span><span class="kv-val">Kaliumferrisyanidi 8 g/100 ml</span></div>
+      <div class="kv-row"><span class="kv-key">Sekoitus</span><span class="kv-val">1:1 ennen käyttöä</span></div>
+      <div class="kv-row"><span class="kv-key">Valotus</span><span class="kv-val">Aurinko tai UV 2–15 min</span></div>
+      <div class="kv-row"><span class="kv-key">Kehitys</span><span class="kv-val">Kylmä vesi 5 min</span></div>
+    </div></div></div>
+
+    <div class="panel"><div class="panel-header"><h3>Pimeikköjärjestys</h3></div><div class="panel-body"><div class="kv-list">
+      <div class="kv-row"><span class="kv-key">1.</span><span class="kv-val">Kehitin — seuraa aikaa</span></div>
+      <div class="kv-row"><span class="kv-key">2.</span><span class="kv-val">Stoppi — pysäyttää kehityksen</span></div>
+      <div class="kv-row"><span class="kv-key">3.</span><span class="kv-val">Fiksaatti — tekee pysyvän kuvan</span></div>
+      <div class="kv-row"><span class="kv-key">4.</span><span class="kv-val">Pesu — poistaa kemikaalit</span></div>
+      <div class="kv-row"><span class="kv-key">5.</span><span class="kv-val">Kuivaus — roikuta ylösalaisin</span></div>
+      <div class="kv-row"><span class="kv-key">Valo!</span><span class="kv-val">Vasta fiksauksen jälkeen</span></div>
+    </div></div></div>
+  </div>
+  <div class="notice notice-red"><div class="notice-icon">!</div><div class="notice-body"><strong>Turvallisuus:</strong> Suojakäsineet kemikaaleja käsitellessä. Kehitysliuoksia ei viemäriin — toimita ongelmajätepisteeseen.</div></div>
+</section>
+
+<!-- ====== SÄÄTILOKI ====== -->
+<section id="saatiloki" class="section">
+  <h1 class="page-title">Säätiloki</h1>
+  <p class="page-lead">Merkitse kuvaushetken valo-olosuhteet — hyvä referenssi kun analysoit tuloksia.</p>
+  <div class="btn-row"><button type="button" class="btn btn-green" onclick="openM('weather-modal')">+ Lisää merkintä</button></div>
+  <div id="weather-empty" class="empty"><div class="empty-text">Ei säämerkintöjä — aloita seuraavalla kuvauksellasi!</div></div>
+  <div id="weather-list"></div>
+</section>
+
+<!-- ====== MUISTUTUKSET ====== -->
+<section id="muistutukset" class="section">
+  <h1 class="page-title">Muistutukset</h1>
+  <p class="page-lead">Aseta muistutus kun kamera pitää hakea tai valotuksen edistyminen tarkistaa.</p>
+  <div class="btn-row"><button type="button" class="btn btn-green" onclick="openM('reminder-modal')">+ Uusi muistutus</button></div>
+  <div id="reminder-empty" class="empty"><div class="empty-text">Ei muistutuksia — lisää ensimmäinen!</div></div>
+  <div id="reminder-list"></div>
+</section>
+
+<!-- ====== PÄIVÄKIRJA ====== -->
+<section id="paivakirja" class="section">
+  <h1 class="page-title">Kuvauspäiväkirja</h1>
+  <p class="page-lead">Kirjaa onnistuneet kuvaukset, epäonnistumiset ja opit. Jokainen kuva on kokeilu.</p>
+  <div class="btn-row"><button type="button" class="btn btn-green" onclick="openM('diary-modal')">+ Uusi merkintä</button></div>
+  <div id="diary-empty" class="empty"><div class="empty-text">Ei merkintöjä vielä — tee ensimmäinen kuvauksesi!</div></div>
+  <div id="diary-list"></div>
+</section>
+
+<!-- ====== TIEDOT ====== -->
+<section id="tiedot" class="section">
+  <h1 class="page-title">Tietojen vienti &amp; tuonti</h1>
+  <p class="page-lead">Vie tiedot varmuuskopioksi tai siirrä toiselle laitteelle. Tuo aiemmin viety tiedosto takaisin.</p>
+
+  <!-- EXPORT -->
+  <h2 class="section-title">Vie tiedot</h2>
+  <div class="panel">
+    <div class="panel-header"><h3>Valitse vietävät tiedot</h3></div>
+    <div class="panel-body">
+      <div class="form-stack">
+        <div style="display:flex;flex-direction:column;gap:10px">
+          <label style="display:flex;align-items:center;gap:10px;cursor:pointer;font-size:14px;color:var(--text2)">
+            <input type="checkbox" id="exp-cameras"  checked style="width:18px;height:18px;accent-color:var(--amber);cursor:pointer">
+            <span><strong style="color:var(--text)">Seuranta</strong> — kaikki kameramerkinnät</span>
+            <span id="exp-cameras-count" style="margin-left:auto;font-size:12px;color:var(--text4)"></span>
+          </label>
+          <label style="display:flex;align-items:center;gap:10px;cursor:pointer;font-size:14px;color:var(--text2)">
+            <input type="checkbox" id="exp-diary"    checked style="width:18px;height:18px;accent-color:var(--amber);cursor:pointer">
+            <span><strong style="color:var(--text)">Päiväkirja</strong> — kuvausmerkinnät</span>
+            <span id="exp-diary-count" style="margin-left:auto;font-size:12px;color:var(--text4)"></span>
+          </label>
+          <label style="display:flex;align-items:center;gap:10px;cursor:pointer;font-size:14px;color:var(--text2)">
+            <input type="checkbox" id="exp-reminders" checked style="width:18px;height:18px;accent-color:var(--amber);cursor:pointer">
+            <span><strong style="color:var(--text)">Muistutukset</strong></span>
+            <span id="exp-reminders-count" style="margin-left:auto;font-size:12px;color:var(--text4)"></span>
+          </label>
+          <label style="display:flex;align-items:center;gap:10px;cursor:pointer;font-size:14px;color:var(--text2)">
+            <input type="checkbox" id="exp-weather"  checked style="width:18px;height:18px;accent-color:var(--amber);cursor:pointer">
+            <span><strong style="color:var(--text)">Säätiloki</strong></span>
+            <span id="exp-weather-count" style="margin-left:auto;font-size:12px;color:var(--text4)"></span>
+          </label>
+        </div>
+
+        <div style="border-top:1px solid var(--border);padding-top:14px;margin-top:4px">
+          <div class="label-sm" style="margin-bottom:10px">Vientiformaatti</div>
+          <div style="display:flex;gap:10px;flex-wrap:wrap">
+            <label style="display:flex;align-items:center;gap:6px;cursor:pointer;font-size:13px;color:var(--text2)">
+              <input type="radio" name="exp-format" value="json" checked style="accent-color:var(--amber)"> JSON (täydellinen, suositellaan)
+            </label>
+            <label style="display:flex;align-items:center;gap:6px;cursor:pointer;font-size:13px;color:var(--text2)">
+              <input type="radio" name="exp-format" value="csv" style="accent-color:var(--amber)"> CSV (taulukko, Excel-yhteensopiva)
+            </label>
+          </div>
+        </div>
+
+        <div id="exp-preview" style="background:var(--surface2);border:1px solid var(--border);border-radius:6px;padding:10px 14px;font-size:12px;color:var(--text3);min-height:36px"></div>
+
+        <button type="button" class="btn btn-amber" onclick="doExport()" style="align-self:flex-start">Vie tiedot</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- IMPORT -->
+  <h2 class="section-title" style="margin-top:32px">Tuo tiedot</h2>
+  <div class="panel">
+    <div class="panel-header"><h3>Lataa tiedosto</h3></div>
+    <div class="panel-body">
+      <div class="form-stack">
+        <div class="notice notice-amber">
+          <div class="notice-icon">!</div>
+          <div class="notice-body"><strong>Huomio:</strong> Tuonti yhdistää tiedot olemassa oleviin — olemassa olevia merkintöjä ei ylikirjoiteta. Sama merkintä (sama id) tuodaan vain kerran.</div>
+        </div>
+
+        <div class="field">
+          <label>JSON-tiedosto (.json)</label>
+          <input type="file" id="imp-file" accept=".json" onchange="previewImport()" style="cursor:pointer">
+        </div>
+
+        <div id="imp-preview" style="display:none;background:var(--surface2);border:1px solid var(--border);border-radius:6px;padding:14px">
+          <div class="label-sm" style="margin-bottom:10px">Tiedostossa löytyi</div>
+          <div id="imp-preview-content" style="display:flex;flex-direction:column;gap:8px"></div>
+
+          <div style="margin-top:14px;border-top:1px solid var(--border);padding-top:14px">
+            <div class="label-sm" style="margin-bottom:10px">Valitse tuotavat tiedot</div>
+            <div style="display:flex;flex-direction:column;gap:8px">
+              <label id="imp-cb-cameras-wrap"  style="display:none;align-items:center;gap:8px;cursor:pointer;font-size:13px;color:var(--text2)"><input type="checkbox" id="imp-cameras"   checked style="width:16px;height:16px;accent-color:var(--amber)"> Seuranta</label>
+              <label id="imp-cb-diary-wrap"    style="display:none;align-items:center;gap:8px;cursor:pointer;font-size:13px;color:var(--text2)"><input type="checkbox" id="imp-diary"     checked style="width:16px;height:16px;accent-color:var(--amber)"> Päiväkirja</label>
+              <label id="imp-cb-reminders-wrap" style="display:none;align-items:center;gap:8px;cursor:pointer;font-size:13px;color:var(--text2)"><input type="checkbox" id="imp-reminders" checked style="width:16px;height:16px;accent-color:var(--amber)"> Muistutukset</label>
+              <label id="imp-cb-weather-wrap"  style="display:none;align-items:center;gap:8px;cursor:pointer;font-size:13px;color:var(--text2)"><input type="checkbox" id="imp-weather"   checked style="width:16px;height:16px;accent-color:var(--amber)"> Säätiloki</label>
+            </div>
+          </div>
+
+          <button type="button" class="btn btn-green" onclick="doImport()" style="margin-top:14px">Tuo valitut tiedot</button>
+        </div>
+
+        <div id="imp-result" style="display:none"></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+</main>
+
+<!-- ====== MODAALIT ====== -->
+
+<div class="overlay" id="tracker-modal">
+  <div class="modal">
+    <div class="modal-header"><h3 id="tracker-modal-title">Lisää kamera</h3><button type="button" class="modal-close" onclick="closeM('tracker-modal');clearTrackerForm()">✕</button></div>
+    <div class="modal-body">
+      <input type="hidden" id="m-edit-id">
+      <div class="form-stack">
+        <div class="form-row-2">
+          <div class="field"><label>Kameran nimi *</label><input type="text" id="m-name" placeholder="esim. Tölkki #1"></div>
+          <div class="field"><label>Materiaali</label>
+            <select id="m-material">
+              <option>RC-paperi</option><option>Lith-paperi</option><option>FB-paperi</option>
+              <option>Cyanotype</option><option>Film ISO 100</option><option>Film ISO 400</option><option>Muu</option>
+            </select>
+          </div>
+        </div>
+        <div class="field"><label>Sijainti</label><input type="text" id="m-location" placeholder="esim. Kotipihan eteläseinä, 2 m korkeudessa"></div>
+        <div class="form-row-2">
+          <div class="field"><label>Asetettu (päivä ja kellonaika)</label><input type="datetime-local" id="m-date"></div>
+          <div class="field"><label>Suunniteltu aika</label>
+            <select id="m-planned">
+              <option value="hours-1">1 tunti</option><option value="hours-6">6 tuntia</option>
+              <option value="days-1">1 päivä</option><option value="days-7">1 viikko</option>
+              <option value="days-30" selected>1 kuukausi</option><option value="days-90">3 kuukautta</option>
+              <option value="days-180">6 kuukautta</option><option value="days-365">1 vuosi</option>
+            </select>
+          </div>
+        </div>
+        <div class="field"><label>Muistiinpanot</label><textarea id="m-notes" placeholder="Suunta, korkeus, sää..."></textarea></div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button type="button" class="btn btn-ghost" onclick="closeM('tracker-modal');clearTrackerForm()">Peruuta</button>
+      <button type="button" class="btn btn-green" onclick="addCamera()">Tallenna</button>
+    </div>
+  </div>
+</div>
+
+<div class="overlay" id="weather-modal">
+  <div class="modal">
+    <div class="modal-header"><h3 id="weather-modal-title">Lisää säämerkintä</h3><button type="button" class="modal-close" onclick="closeM('weather-modal');clearWeatherForm()">✕</button></div>
+    <div class="modal-body">
+      <input type="hidden" id="w-edit-id">
+      <div class="form-stack">
+        <div class="form-row-2">
+          <div class="field"><label>Päivämäärä ja aika</label><input type="datetime-local" id="w-date"></div>
+          <div class="field"><label>Sää</label>
+            <select id="w-weather">
+              <option>Kirkas aurinko</option><option>Puolipilvinen</option><option>Pilvinen</option>
+              <option>Sateinen</option><option>Luminen / talvivalo</option>
+              <option>Auringonlasku / -nousu</option><option>Yö / tähtivalo</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-row-2">
+          <div class="field"><label>Lämpötila (°C)</label><input type="number" id="w-temp" placeholder="esim. 12"></div>
+          <div class="field"><label>Liittyy kameraan</label><input type="text" id="w-camera" placeholder="esim. Tölkki #1"></div>
+        </div>
+        <div class="field"><label>Lisähuomiot</label><textarea id="w-notes" placeholder="Kirkas aurinko 45° kulmassa..."></textarea></div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button type="button" class="btn btn-ghost" onclick="closeM('weather-modal');clearWeatherForm()">Peruuta</button>
+      <button type="button" class="btn btn-green" onclick="addWeather()">Tallenna</button>
+    </div>
+  </div>
+</div>
+
+<div class="overlay" id="reminder-modal">
+  <div class="modal">
+    <div class="modal-header"><h3 id="reminder-modal-title">Uusi muistutus</h3><button type="button" class="modal-close" onclick="closeM('reminder-modal');clearReminderForm()">✕</button></div>
+    <div class="modal-body">
+      <input type="hidden" id="r-edit-id">
+      <div class="form-stack">
+        <div class="field"><label>Nimi *</label><input type="text" id="r-name" placeholder="esim. Hae Tölkki #1 eteläseinästä"></div>
+        <div class="form-row-2">
+          <div class="field"><label>Muistutusaika</label><input type="datetime-local" id="r-date"></div>
+          <div class="field"><label>Kamera</label><input type="text" id="r-camera" placeholder="esim. Tölkki #1"></div>
+        </div>
+        <div class="field"><label>Huomautus</label><input type="text" id="r-note" placeholder="esim. Muista hakea pimeässä!"></div>
+
+        <!-- Exposure duration calculator -->
+        <div style="border-top:1px solid var(--border);padding-top:14px;margin-top:4px">
+          <div class="label-sm" style="margin-bottom:10px">Valotusajan laskuri</div>
+          <div class="form-row-2">
+            <div class="field"><label>Valotus alkoi</label><input type="datetime-local" id="r-exp-start" oninput="calcReminderDuration()"></div>
+            <div class="field"><label>Valotus loppui</label><input type="datetime-local" id="r-exp-end" oninput="calcReminderDuration()"></div>
+          </div>
+          <div id="r-exp-result" style="font-size:13px;font-weight:600;margin-top:6px;min-height:18px"></div>
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button type="button" class="btn btn-ghost" onclick="closeM('reminder-modal');clearReminderForm()">Peruuta</button>
+      <button type="button" class="btn btn-green" onclick="addReminder()">Tallenna</button>
+    </div>
+  </div>
+</div>
+
+<div class="overlay" id="diary-modal">
+  <div class="modal">
+    <div class="modal-header"><h3 id="diary-modal-title">Uusi päiväkirjamerkintä</h3><button type="button" class="modal-close" onclick="closeM('diary-modal');clearDiaryForm()">✕</button></div>
+    <div class="modal-body">
+      <input type="hidden" id="d-edit-id">
+      <div class="form-stack">
+        <div class="form-row-2">
+          <div class="field"><label>Päivämäärä</label><input type="date" id="d-date"></div>
+          <div class="field"><label>Kamera</label><input type="text" id="d-camera" placeholder="esim. Tölkki #1"></div>
+        </div>
+        <div class="form-row-2">
+          <div class="field"><label>Valotus alkoi</label><input type="datetime-local" id="d-start" oninput="calcDiaryDuration()"></div>
+          <div class="field"><label>Valotus loppui</label><input type="datetime-local" id="d-end" oninput="calcDiaryDuration()"></div>
+        </div>
+        <!-- Live duration result -->
+        <div id="d-duration-result" style="font-size:13px;font-weight:600;min-height:18px;display:none;padding:8px 12px;border-radius:6px;background:var(--green-bg);color:var(--green-dk);border:1px solid var(--green-bd)"></div>
+        <div class="form-row-2">
+          <div class="field"><label>Materiaali</label><input type="text" id="d-material" placeholder="esim. RC-paperi ISO 3"></div>
+          <div class="field">
+            <label style="display:flex;justify-content:space-between;align-items:center">
+              Valotusaika
+              <button type="button" id="d-exposure-reset" onclick="resetDiaryExposure()" style="display:none;font-size:10px;font-weight:600;color:var(--amber);background:none;border:none;cursor:pointer;padding:0;text-decoration:underline">Palauta laskettu</button>
+            </label>
+            <input type="text" id="d-exposure" placeholder="esim. 10 h 30 min">
+          </div>
+        </div>
+        <div class="form-row-2">
+          <div class="field"><label>Sää</label>
+            <select id="d-weather">
+              <option>Kirkas aurinko</option><option>Puolipilvinen</option><option>Pilvinen</option>
+              <option>Sateinen</option><option>Talvivalo</option><option>Auringonlasku</option><option>Yö</option>
+            </select>
+          </div>
+          <div class="field"><label>Arvosana</label>
+            <select id="d-rating">
+              <option value="1">1 — Opittavaa</option><option value="2">2 — Kohtalainen</option>
+              <option value="3" selected>3 — Hyvä</option><option value="4">4 — Mainio</option><option value="5">5 — Loistava</option>
+            </select>
+          </div>
+        </div>
+        <div class="field"><label>Kuvaus &amp; huomiot</label><textarea id="d-notes" placeholder="Mitä kuvattiin, miten onnistui, mitä opittiin..."></textarea></div>
+        <div class="field"><label>Tagit (pilkuilla erotettuna)</label><input type="text" id="d-tags" placeholder="esim. solargrafia, onnistui, ylialtistus"></div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button type="button" class="btn btn-ghost" onclick="closeM('diary-modal');clearDiaryForm()">Peruuta</button>
+      <button type="button" class="btn btn-green" onclick="addDiaryEntry()">Tallenna</button>
+    </div>
+  </div>
+</div>
+
+<script>
+/* ── STATE ── */
+let cameras   = JSON.parse(localStorage.getItem('ph2-cameras')   || '[]');
+let diary     = JSON.parse(localStorage.getItem('ph2-diary')     || '[]');
+let weather   = JSON.parse(localStorage.getItem('ph2-weather')   || '[]');
+let reminders = JSON.parse(localStorage.getItem('ph2-reminders') || '[]');
+
+function save() {
+  localStorage.setItem('ph2-cameras',   JSON.stringify(cameras));
+  localStorage.setItem('ph2-diary',     JSON.stringify(diary));
+  localStorage.setItem('ph2-weather',   JSON.stringify(weather));
+  localStorage.setItem('ph2-reminders', JSON.stringify(reminders));
+}
+
+/* ── THEME ── */
+function toggleTheme() {
+  const isDark = document.documentElement.classList.toggle('dark');
+  localStorage.setItem('ph2-theme', isDark ? 'dark' : 'light');
+}
+
+/* ── NAV ── */
+function go(id, el) {
+  document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+  document.querySelectorAll('.nav-pill').forEach(p => p.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  el.classList.add('active');
+  el.scrollIntoView({ block:'nearest', inline:'center', behavior:'smooth' });
+  if (id === 'seuranta')     renderTracker();
+  if (id === 'paivakirja')   renderDiary();
+  if (id === 'saatiloki')    renderWeather();
+  if (id === 'muistutukset') renderReminders();
+  if (id === 'laskuri')      { calcExposure(); calcOptimal(); }
+  if (id === 'tiedot')       updateExportCounts();
+}
+
+/* ── MODALS ── */
+function openM(id) {
+  const isEdit = {
+    'tracker-modal':  !!document.getElementById('m-edit-id').value,
+    'weather-modal':  !!document.getElementById('w-edit-id').value,
+    'reminder-modal': !!document.getElementById('r-edit-id').value,
+    'diary-modal':    !!document.getElementById('d-edit-id').value,
+  }[id];
+
+  if (!isEdit) {
+    if (id==='tracker-modal')  { clearTrackerForm();  document.getElementById('m-date').value=nowLocal(); }
+    if (id==='weather-modal')  { clearWeatherForm();  document.getElementById('w-date').value=nowLocal(); }
+    if (id==='reminder-modal') { clearReminderForm(); document.getElementById('r-date').value=nowLocal(); }
+    if (id==='diary-modal') {
+      clearDiaryForm();
+      document.getElementById('d-date').value=today();
+      document.getElementById('d-start').value=nowLocal();
+      initDiaryListeners();
+    }
+  }
+  document.getElementById(id).classList.add('open');
+}
+function closeM(id) { document.getElementById(id).classList.remove('open'); }
+
+/* ── UTILS ── */
+function today()    { return new Date().toISOString().slice(0,10); }
+function nowLocal() { const d=new Date(); d.setMinutes(d.getMinutes()-d.getTimezoneOffset()); return d.toISOString().slice(0,16); }
+function esc(s)     { return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+
+// Convert any date string to local datetime-local format (YYYY-MM-DDTHH:MM).
+// Works for both ISO UTC strings ("...Z") and already-local strings.
+function toLocalInput(str) {
+  if (!str) return '';
+  const d = new Date(str);
+  if (isNaN(d)) return str.slice(0,16); // already local format, just trim
+  const local = new Date(d.getTime() - d.getTimezoneOffset()*60000);
+  return local.toISOString().slice(0,16);
+}
+
+/* ── TRACKER ── */
+function addCamera() {
+  const name=document.getElementById('m-name').value.trim();
+  if (!name) { alert('Kameran nimi on pakollinen!'); return; }
+  const editId=document.getElementById('m-edit-id').value;
+  const obj = {
+    id: editId ? +editId : Date.now(),
+    name,
+    location: document.getElementById('m-location').value.trim(),
+    material: document.getElementById('m-material').value,
+    date:     document.getElementById('m-date').value,
+    planned:  document.getElementById('m-planned').value,
+    notes:    document.getElementById('m-notes').value,
+    status:   editId ? (cameras.find(c=>c.id===+editId)||{}).status||'active' : 'active'
+  };
+  if (editId) {
+    cameras = cameras.map(c => c.id===+editId ? obj : c);
+  } else {
+    cameras.push(obj);
+  }
+  save(); closeM('tracker-modal'); clearTrackerForm(); renderTracker();
+}
+
+function clearTrackerForm() {
+  ['m-name','m-location','m-notes','m-edit-id'].forEach(i=>document.getElementById(i).value='');
+  document.getElementById('tracker-modal-title').textContent='Lisää kamera';
+}
+
+function editCamera(id) {
+  const c=cameras.find(x=>x.id===id); if(!c) return;
+  document.getElementById('m-edit-id').value  = c.id;
+  document.getElementById('m-name').value     = c.name;
+  document.getElementById('m-location').value = c.location||'';
+  document.getElementById('m-notes').value    = c.notes||'';
+  document.getElementById('m-date').value     = c.date||'';
+  // Select the matching option
+  document.getElementById('m-material').value = c.material;
+  document.getElementById('m-planned').value  = c.planned;
+  document.getElementById('tracker-modal-title').textContent='Muokkaa kameraa';
+  openM('tracker-modal');
+}
+
+const pLbl={'hours-1':'1t','hours-6':'6t','days-1':'1pv','days-7':'1vko','days-30':'1kk','days-90':'3kk','days-180':'6kk','days-365':'1v'};
+
+function parsePlanned(v) { const [u,n]=v.split('-'); return u==='hours'?+n*3600000:+n*86400000; } // returns ms
+
+function getElapsedMs(ds) { return Date.now()-new Date(ds); }
+
+function fmtElapsed(ms) {
+  if (ms<0) return '0 min';
+  const sec=Math.floor(ms/1000), min=Math.floor(sec/60), h=Math.floor(min/60),
+        d=Math.floor(h/24), mo=Math.floor(d/30);
+  if (mo>=2)  return `${mo} kk ${d%30}pv`;
+  if (d>=1)   return `${d}pv ${h%24}t ${min%60}min`;
+  if (h>=1)   return `${h}t ${min%60}min`;
+  if (min>=1) return `${min}min ${sec%60}s`;
+  return `${sec}s`;
+}
+
+function getPct(ds, planned) {
+  const ms=getElapsedMs(ds), total=parsePlanned(planned);
+  return Math.min(100, ms/total*100);
+}
+
+function renderTracker() {
+  const list=document.getElementById('camera-list');
+  const empty=document.getElementById('camera-empty');
+  const stats=document.getElementById('stats-row');
+  if (!cameras.length) { empty.style.display='block'; list.style.display='none'; stats.style.display='none'; return; }
+  empty.style.display='none'; list.style.display='flex'; stats.style.display='block';
+  document.getElementById('stat-active').textContent=cameras.filter(c=>c.status==='active').length;
+  document.getElementById('stat-done').textContent=cameras.filter(c=>c.status==='done').length;
+  document.getElementById('stat-total').textContent=cameras.length;
+  list.innerHTML=cameras.map(c=>{
+    // For done cameras use doneAt as endpoint, otherwise use now
+    const endPoint = (c.status==='done' && c.doneAt) ? new Date(c.doneAt) : new Date();
+    const ms = endPoint - new Date(c.date);
+    const pct=Math.min(100, ms/parsePlanned(c.planned)*100);
+    const col=pct>=100?'var(--red)':pct>70?'var(--amber)':'var(--green)';
+    const startFmt=new Date(c.date).toLocaleString('fi-FI',{day:'numeric',month:'numeric',year:'numeric',hour:'2-digit',minute:'2-digit'});
+    const plannedMs=parsePlanned(c.planned);
+    const remainMs=Math.max(0, plannedMs-ms);
+    const remainStr=fmtElapsed(remainMs);
+    // For done cameras: show when retrieved
+    const doneFmt = c.doneAt ? new Date(c.doneAt).toLocaleString('fi-FI',{day:'numeric',month:'numeric',year:'numeric',hour:'2-digit',minute:'2-digit'}) : '';
+    return `<div class="camera-card" id="cam-${c.id}">
+      <div class="camera-card-top">
+        <div>
+          <div class="camera-name">${esc(c.name)}</div>
+          <div class="camera-meta">${c.location?esc(c.location)+' · ':''}${esc(c.material)}</div>
+        </div>
+        <span class="status-pill ${c.status==='active'?'active':'done'}">${c.status==='active'?'Aktiivinen':'Valmis'}</span>
+      </div>
+      <div class="camera-meta" style="margin-bottom:8px">
+        Asetettu ${startFmt} · Tavoite ${pLbl[c.planned]||c.planned}
+        ${doneFmt?` · Haettu ${doneFmt}`:''}
+      </div>
+
+      <!-- Elapsed box — always shown, live ticker only for active -->
+      <div class="elapsed-box" style="background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:10px 14px;margin-bottom:10px;">
+        <div style="font-size:10px;font-weight:700;letter-spacing:0.06em;text-transform:uppercase;color:var(--text3);margin-bottom:3px">
+          ${c.status==='active'?'Kulunut valotusaika':'Kokonaisvalotusaika'}
+        </div>
+        <div style="font-family:'Lora',serif;font-size:22px;font-weight:600;color:${col}"
+             ${c.status==='active'?`data-elapsed="${c.date}"`:''}>${fmtElapsed(ms)}</div>
+        <div style="font-size:11px;color:var(--text3);margin-top:2px">
+          ${c.status==='done'
+            ? (pct>=100 ? 'Tavoiteaika täyttyi' : `${pct.toFixed(0)}% tavoitteesta`)
+            : (pct>=100 ? 'Tavoiteaika täyttynyt!' : 'Jäljellä noin '+remainStr)}
+        </div>
+      </div>
+
+      <div class="camera-progress">
+        <div class="progress-bar"><div class="progress-fill" style="width:${pct}%;background:${col}"></div></div>
+        <div class="progress-labels">
+          <span class="progress-pct" style="color:${col};font-weight:700">${pct.toFixed(1)}%</span>
+          <span class="progress-time">${pLbl[c.planned]||c.planned}</span>
+        </div>
+      </div>
+
+      ${c.notes?`<div class="camera-meta" style="margin-top:6px">${esc(c.notes)}</div>`:''}
+      <div class="camera-actions" style="margin-top:10px">
+        ${c.status==='active'?`<button type="button" class="btn btn-green btn-sm" onclick="markDone(${c.id})">Hae pois</button>`:''}
+        <button type="button" class="btn btn-amber btn-sm" onclick="exportToDiary(${c.id})">Vie päiväkirjaan</button>
+        <button type="button" class="btn btn-ghost btn-sm" onclick="editCamera(${c.id})">Muokkaa</button>
+        <button type="button" class="btn btn-ghost btn-sm" style="color:var(--red)" onclick="removeCamera(${c.id})">Poista</button>
+      </div>
+    </div>`;
+  }).join('');
+
+  // Tick live elapsed every second for active cameras
+  clearInterval(window._trackerTick);
+  if (cameras.some(c=>c.status==='active')) {
+    window._trackerTick = setInterval(()=>{
+      document.querySelectorAll('[data-elapsed]').forEach(el=>{
+        const ms=getElapsedMs(el.dataset.elapsed);
+        el.textContent=fmtElapsed(ms);
+      });
+      // Also update progress bars
+      cameras.filter(c=>c.status==='active').forEach(c=>{
+        const card=document.getElementById('cam-'+c.id);
+        if (!card) return;
+        const pct=getPct(c.date,c.planned);
+        const col=pct>=100?'var(--red)':pct>70?'var(--amber)':'var(--green)';
+        const fill=card.querySelector('.progress-fill');
+        const pctLabel=card.querySelector('.progress-pct');
+        if (fill) fill.style.width=pct+'%';
+        if (pctLabel) pctLabel.textContent=pct.toFixed(1)+'%';
+        // Update elapsed text color
+        const elEl=card.querySelector('[data-elapsed]');
+        if (elEl) elEl.style.color=col;
+      });
+    }, 1000);
+  }
+}
+
+function markDone(id) {
+  if (!confirm('Merkitäänkö kamera haetuksi?')) return;
+  // Store retrieval time in local time (same format as c.date set via nowLocal())
+  cameras=cameras.map(c=>c.id===id ? {...c, status:'done', doneAt: nowLocal()} : c);
+  save(); renderTracker();
+}
+function removeCamera(id) {
+  if (!confirm('Poistetaanko kamera seurannasta? Tätä ei voi peruuttaa.')) return;
+  cameras=cameras.filter(c=>c.id!==id); save(); renderTracker();
+}
+
+function exportCSV() {
+  const h='Nimi,Sijainti,Materiaali,Asetettu,Suunniteltu,Kulunut,Tila,Muistiinpanot';
+  const r=cameras.map(c=>[c.name,c.location,c.material,c.date,c.planned,fmtElapsed(getElapsedMs(c.date)),c.status,c.notes||''].map(v=>`"${v}"`).join(','));
+  const a=document.createElement('a');
+  a.href='data:text/csv;charset=utf-8,\uFEFF'+encodeURIComponent([h,...r].join('\n'));
+  a.download='kamerat.csv'; a.click();
+}
+
+/* ── CALCULATOR ── */
+function calcExposure() {
+  const f=+document.getElementById('focal').value||150;
+  const d=+document.getElementById('aperture').value||0.3;
+  const iso=+document.getElementById('iso').value||3;
+  const lux=+document.getElementById('light').value||50000;
+  const fn=f/d, ev=Math.log2(lux/2.5), tv=Math.pow(2,ev)*iso/100, s=(fn*fn)/(tv*100);
+  const disp=s<1?`${(s*1000).toFixed(0)} ms`:s<60?`${s.toFixed(1)} s`:s<3600?`${(s/60).toFixed(1)} min`:s<86400?`${(s/3600).toFixed(1)} h`:`${(s/86400).toFixed(1)} pv`;
+  document.getElementById('calc-num').textContent=disp;
+  document.getElementById('calc-sub').textContent=`f/${fn.toFixed(0)} — muista resiprositeettivika!`;
+}
+
+function calcOptimal() {
+  const f=+document.getElementById('opt-focal').value||150;
+  const d=1.9*Math.sqrt(0.00055*f);
+  document.getElementById('opt-num').textContent=`${d.toFixed(3)} mm`;
+  document.getElementById('opt-sub').textContent=`Optimaalinen halkaisija (f/${(f/d).toFixed(0)})`;
+}
+
+/* ── WEATHER ── */
+function addWeather() {
+  const editId = document.getElementById('w-edit-id').value;
+  const obj = {
+    id:       editId ? +editId : Date.now(),
+    datetime: document.getElementById('w-date').value,
+    desc:     document.getElementById('w-weather').value,
+    temp:     document.getElementById('w-temp').value,
+    camera:   document.getElementById('w-camera').value,
+    notes:    document.getElementById('w-notes').value.trim()
+  };
+  if (editId) {
+    weather = weather.map(w => w.id===+editId ? obj : w);
+  } else {
+    weather.unshift(obj);
+  }
+  save(); closeM('weather-modal'); clearWeatherForm(); renderWeather();
+}
+
+function clearWeatherForm() {
+  ['w-temp','w-camera','w-notes','w-edit-id'].forEach(i=>document.getElementById(i).value='');
+  document.getElementById('weather-modal-title').textContent='Lisää säämerkintä';
+}
+
+function editWeather(id) {
+  const w=weather.find(x=>x.id===id); if(!w) return;
+  document.getElementById('w-edit-id').value  = w.id;
+  document.getElementById('w-date').value     = w.datetime||'';
+  document.getElementById('w-weather').value  = w.desc||'';
+  document.getElementById('w-temp').value     = w.temp||'';
+  document.getElementById('w-camera').value   = w.camera||'';
+  document.getElementById('w-notes').value    = w.notes||'';
+  document.getElementById('weather-modal-title').textContent='Muokkaa säämerkintää';
+  openM('weather-modal');
+}
+
+function renderWeather() {
+  const list=document.getElementById('weather-list'), empty=document.getElementById('weather-empty');
+  if (!weather.length) { empty.style.display='block'; list.innerHTML=''; return; }
+  empty.style.display='none';
+  list.innerHTML=weather.map(w=>`
+    <div class="entry-card">
+      <div class="entry-body">
+        <div class="entry-title">${esc(w.desc)}${w.temp?' · '+esc(w.temp)+'°C':''}</div>
+        <div class="entry-meta">${w.datetime}${w.camera?' · '+esc(w.camera):''}</div>
+        ${w.notes?`<div class="entry-note">${esc(w.notes)}</div>`:''}
+      </div>
+      <div style="display:flex;gap:6px;flex-shrink:0">
+        <button type="button" class="btn btn-ghost btn-sm" onclick="editWeather(${w.id})">Muokkaa</button>
+        <button type="button" class="btn btn-ghost btn-sm" style="color:var(--red)" onclick="removeWeather(${w.id})">Poista</button>
+      </div>
+    </div>`).join('');
+}
+
+function removeWeather(id) {
+  if (!confirm('Poistetaanko säämerkintä?')) return;
+  weather=weather.filter(w=>w.id!==id); save(); renderWeather();
+}
+
+/* ── REMINDERS ── */
+function calcReminderDuration() {
+  const s=document.getElementById('r-exp-start').value;
+  const e=document.getElementById('r-exp-end').value;
+  const out=document.getElementById('r-exp-result');
+  if (!s||!e) { out.textContent=''; return; }
+  const ms=new Date(e)-new Date(s);
+  if (ms<=0) { out.textContent='Lopetusaika ennen aloitusaikaa'; out.style.color='var(--red)'; return; }
+  out.textContent='Valotusaika: ' + fmtElapsed(ms);
+  out.style.color='var(--green)';
+  // Also auto-fill the note field
+  const curr=document.getElementById('r-note').value;
+  if (!curr) document.getElementById('r-note').value='Valotusaika: '+fmtElapsed(ms);
+}
+
+function addReminder() {
+  const name=document.getElementById('r-name').value.trim();
+  if (!name) { alert('Lisää muistutuksen nimi!'); return; }
+  const editId=document.getElementById('r-edit-id').value;
+  const obj = {
+    id:     editId ? +editId : Date.now(),
+    name,
+    date:   document.getElementById('r-date').value,
+    camera: document.getElementById('r-camera').value,
+    note:   document.getElementById('r-note').value,
+    expStart: document.getElementById('r-exp-start').value,
+    expEnd:   document.getElementById('r-exp-end').value,
+    done: editId ? (reminders.find(r=>r.id===+editId)||{}).done||false : false
+  };
+  if (editId) {
+    reminders = reminders.map(r => r.id===+editId ? obj : r);
+  } else {
+    reminders.push(obj);
+  }
+  save(); closeM('reminder-modal'); clearReminderForm(); renderReminders(); updateBadge();
+}
+
+function clearReminderForm() {
+  ['r-name','r-camera','r-note','r-edit-id','r-exp-start','r-exp-end'].forEach(i=>document.getElementById(i).value='');
+  document.getElementById('r-exp-result').textContent='';
+  document.getElementById('reminder-modal-title').textContent='Uusi muistutus';
+}
+
+function editReminder(id) {
+  const r=reminders.find(x=>x.id===id); if(!r) return;
+  document.getElementById('r-edit-id').value   = r.id;
+  document.getElementById('r-name').value      = r.name;
+  document.getElementById('r-date').value      = r.date||'';
+  document.getElementById('r-camera').value    = r.camera||'';
+  document.getElementById('r-note').value      = r.note||'';
+  document.getElementById('r-exp-start').value = r.expStart||'';
+  document.getElementById('r-exp-end').value   = r.expEnd||'';
+  document.getElementById('reminder-modal-title').textContent='Muokkaa muistutusta';
+  calcReminderDuration();
+  openM('reminder-modal');
+}
+
+function renderReminders() {
+  const list=document.getElementById('reminder-list'), empty=document.getElementById('reminder-empty');
+  if (!reminders.length) { empty.style.display='block'; list.innerHTML=''; return; }
+  empty.style.display='none';
+  const now=Date.now();
+  list.innerHTML=[...reminders].sort((a,b)=>new Date(a.date)-new Date(b.date)).map(r=>{
+    const dt=new Date(r.date), ts=dt.getTime();
+    const ov=!r.done && ts < now;
+    const sn=!r.done && ts >= now && ts < now+3600000;
+    const dot=r.done?'dot-done':ov?'dot-red':sn?'dot-amber':'dot-green';
+    const fmtDt=dt.toLocaleString('fi-FI',{day:'numeric',month:'numeric',year:'numeric',hour:'2-digit',minute:'2-digit'});
+    // Exposure duration if available
+    let expLine='';
+    if (r.expStart && r.expEnd) {
+      const ms=new Date(r.expEnd)-new Date(r.expStart);
+      if (ms>0) {
+        const s=new Date(r.expStart).toLocaleString('fi-FI',{day:'numeric',month:'numeric',hour:'2-digit',minute:'2-digit'});
+        const e=new Date(r.expEnd).toLocaleString('fi-FI',{day:'numeric',month:'numeric',hour:'2-digit',minute:'2-digit'});
+        expLine=`<div style="font-size:12px;color:var(--text3);margin-top:4px">Valotus: ${s} – ${e} (${fmtElapsed(ms)})</div>`;
+      }
+    }
+    return `<div class="entry-card" style="${r.done?'opacity:0.55':''}">
+      <div class="entry-dot ${dot}" style="margin-top:6px;flex-shrink:0"></div>
+      <div class="entry-body" style="min-width:0">
+        <div class="entry-title" style="${r.done?'text-decoration:line-through':''}">${esc(r.name)}</div>
+        <div class="entry-meta">${fmtDt}${r.camera?' · '+esc(r.camera):''}</div>
+        ${r.note?`<div class="entry-meta" style="margin-top:2px">${esc(r.note)}</div>`:''}
+        ${expLine}
+        ${ov&&!r.done?'<div style="font-size:12px;color:var(--red);font-weight:700;margin-top:4px">Ylikuulunut!</div>':''}
+        ${sn&&!r.done?'<div style="font-size:12px;color:var(--amber);font-weight:700;margin-top:4px">Pian!</div>':''}
+      </div>
+      <div style="display:flex;gap:6px;flex-shrink:0;flex-direction:column;align-items:flex-end">
+        ${!r.done?`<button type="button" class="btn btn-green btn-sm" onclick="doneReminder(${r.id})">Tehty</button>`:''}
+        <button type="button" class="btn btn-ghost btn-sm" onclick="editReminder(${r.id})">Muokkaa</button>
+        <button type="button" class="btn btn-ghost btn-sm" style="color:var(--red)" onclick="removeReminder(${r.id})">Poista</button>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function doneReminder(id) {
+  if (!confirm('Merkitäänkö muistutus tehdyksi?')) return;
+  reminders=reminders.map(r=>r.id===id?{...r,done:true}:r); save(); renderReminders(); updateBadge();
+}
+function removeReminder(id) {
+  if (!confirm('Poistetaanko muistutus?')) return;
+  reminders=reminders.filter(r=>r.id!==id); save(); renderReminders(); updateBadge();
+}
+
+function updateBadge() {
+  const pill=document.getElementById('pill-muist');
+  const old=pill.querySelector('.badge'); if(old) old.remove();
+  const now=Date.now();
+  const n=reminders.filter(r=>!r.done && new Date(r.date).getTime()<=now).length;
+  if (n>0) { const b=document.createElement('span'); b.className='badge'; b.textContent=n; pill.appendChild(b); }
+}
+
+/* ── DIARY ── */
+function calcDiaryDuration() {
+  const s=document.getElementById('d-start').value;
+  const e=document.getElementById('d-end').value;
+  const el=document.getElementById('d-duration-result');
+  const expField=document.getElementById('d-exposure');
+
+  if (!s||!e) { el.style.display='none'; return; }
+
+  const ms=new Date(e)-new Date(s);
+  if (ms<=0) {
+    el.style.display='block';
+    el.style.background='var(--red-bg)'; el.style.color='var(--red)'; el.style.borderColor='var(--red-bd)';
+    el.textContent='Lopetusaika on ennen aloitusaikaa';
+    return;
+  }
+
+  const dur=fmtElapsed(ms);
+  el.style.display='block';
+  el.style.background='var(--green-bg)'; el.style.color='var(--green-dk)'; el.style.borderColor='var(--green-bd)';
+  el.textContent='Laskettu valotusaika: ' + dur;
+
+  // Always write to exposure field UNLESS user has manually overridden it
+  if (!expField.dataset.manualEdit) {
+    expField.value = dur;
+  }
+}
+
+function resetDiaryExposure() {
+  const expField = document.getElementById('d-exposure');
+  delete expField.dataset.manualEdit;
+  document.getElementById('d-exposure-reset').style.display = 'none';
+  calcDiaryDuration();
+}
+
+function initDiaryListeners() {
+  const expField = document.getElementById('d-exposure');
+  if (!expField || expField._listenerAdded) return;
+  expField._listenerAdded = true;
+  expField.addEventListener('input', () => {
+    expField.dataset.manualEdit = '1';
+    document.getElementById('d-exposure-reset').style.display = 'inline';
+    // Update indicator to show both computed and manual
+    const el = document.getElementById('d-duration-result');
+    const s=document.getElementById('d-start').value, e2=document.getElementById('d-end').value;
+    if (s && e2 && new Date(e2)-new Date(s) > 0) {
+      el.style.display='block';
+      el.style.background='var(--amber-bg)'; el.style.color='var(--amber)'; el.style.borderColor='var(--amber-bd)';
+      el.textContent = 'Laskettu: ' + fmtElapsed(new Date(e2)-new Date(s)) + ' — käytössä manuaalinen arvo';
+    }
+  });
+}
+
+function clearDiaryForm() {
+  ['d-notes','d-tags','d-camera','d-material','d-exposure','d-start','d-end','d-edit-id'].forEach(i=>document.getElementById(i).value='');
+  // Reset manual-edit flag so auto-calc works fresh
+  delete document.getElementById('d-exposure').dataset.manualEdit;
+  document.getElementById('d-exposure-reset').style.display = 'none';
+  document.getElementById('d-duration-result').style.display='none';
+  document.getElementById('diary-modal-title').textContent='Uusi päiväkirjamerkintä';
+  document.getElementById('d-rating').value='3';
+}
+
+function editDiary(id) {
+  const e=diary.find(x=>x.id===id); if(!e) return;
+  document.getElementById('d-edit-id').value  = e.id;
+  document.getElementById('d-date').value     = e.date||'';
+  document.getElementById('d-camera').value   = e.camera||'';
+  document.getElementById('d-start').value    = toLocalInput(e.start);
+  document.getElementById('d-end').value      = toLocalInput(e.end);
+  document.getElementById('d-material').value = e.material||'';
+  document.getElementById('d-weather').value  = e.weather||'Kirkas aurinko';
+  document.getElementById('d-rating').value   = e.rating||3;
+  document.getElementById('d-notes').value    = e.notes||'';
+  document.getElementById('d-tags').value     = (e.tags||[]).join(', ');
+  document.getElementById('diary-modal-title').textContent='Muokkaa merkintää';
+
+  const expField = document.getElementById('d-exposure');
+  expField.value = e.exposure||'';
+  // If there's an existing exposure value, treat it as manually set
+  // so opening the edit doesn't silently overwrite it
+  if (e.exposure) {
+    expField.dataset.manualEdit = '1';
+    document.getElementById('d-exposure-reset').style.display = 'inline';
+  } else {
+    delete expField.dataset.manualEdit;
+    document.getElementById('d-exposure-reset').style.display = 'none';
+  }
+
+  calcDiaryDuration();
+  initDiaryListeners();
+  document.getElementById('diary-modal').classList.add('open');
+}
+
+// Pre-fill diary modal from a camera in the tracker
+function exportToDiary(id) {
+  const c=cameras.find(x=>x.id===id); if(!c) return;
+  clearDiaryForm();
+  document.getElementById('d-camera').value   = c.name;
+  document.getElementById('d-material').value = c.material;
+  document.getElementById('d-date').value     = c.date ? toLocalInput(c.date).slice(0,10) : today();
+  document.getElementById('d-start').value    = toLocalInput(c.date);
+  if (c.status==='done' && c.doneAt) {
+    document.getElementById('d-end').value = toLocalInput(c.doneAt);
+  }
+  document.getElementById('d-notes').value = c.notes||'';
+  document.getElementById('d-tags').value  = 'seuranta';
+  document.getElementById('diary-modal-title').textContent='Vie päiväkirjaan';
+  calcDiaryDuration();
+  // Navigate to diary section
+  document.querySelectorAll('.section').forEach(s=>s.classList.remove('active'));
+  document.querySelectorAll('.nav-pill').forEach(p=>p.classList.remove('active'));
+  document.getElementById('paivakirja').classList.add('active');
+  document.querySelector('[onclick*="paivakirja"]').classList.add('active');
+  renderDiary();
+  initDiaryListeners();
+  document.getElementById('diary-modal').classList.add('open');
+}
+
+function addDiaryEntry() {
+  const notes=document.getElementById('d-notes').value.trim();
+  if (!notes) { alert('Lisää kuvaus!'); return; }
+  const start=document.getElementById('d-start').value;
+  const end=document.getElementById('d-end').value;
+  const editId=document.getElementById('d-edit-id').value;
+
+  // Calculate exposure from times; fall back to manual field
+  let exposure=document.getElementById('d-exposure').value;
+  if (start && end) {
+    const ms=new Date(end)-new Date(start);
+    if (ms>0) exposure=fmtElapsed(ms);
+  }
+
+  const obj = {
+    id:       editId ? +editId : Date.now(),
+    date:     document.getElementById('d-date').value,
+    start, end,
+    camera:   document.getElementById('d-camera').value,
+    material: document.getElementById('d-material').value,
+    exposure,
+    weather:  document.getElementById('d-weather').value,
+    rating:   +document.getElementById('d-rating').value,
+    notes,
+    tags:     document.getElementById('d-tags').value.split(',').map(t=>t.trim()).filter(Boolean)
+  };
+
+  if (editId) {
+    diary = diary.map(e => e.id===+editId ? obj : e);
+  } else {
+    diary.unshift(obj);
+  }
+  save(); closeM('diary-modal'); clearDiaryForm(); renderDiary();
+}
+
+function renderDiary() {
+  const list=document.getElementById('diary-list'), empty=document.getElementById('diary-empty');
+  if (!diary.length) { empty.style.display='block'; list.innerHTML=''; return; }
+  empty.style.display='none';
+  const stars=['','1','2','3','4','5'];
+
+  list.innerHTML=diary.map(e=>{
+    // Compute exposure ms from start/end if available
+    let expMs=0, expStr='';
+    if (e.start && e.end) {
+      expMs = new Date(e.end) - new Date(e.start);
+      if (expMs>0) expStr = fmtElapsed(expMs);
+    }
+    // Fall back to manually stored exposure string
+    const displayExposure = expStr || e.exposure || '';
+
+    // Format start/end times
+    const fmtDt = dt => {
+      const d=new Date(dt);
+      return d.toLocaleDateString('fi-FI',{day:'numeric',month:'numeric',year:'numeric'})
+        +' '+d.toLocaleTimeString('fi-FI',{hour:'2-digit',minute:'2-digit'});
+    };
+    const timeRange = (e.start && e.end)
+      ? `${fmtDt(e.start)} – ${fmtDt(e.end)}`
+      : e.start ? `Alkoi: ${fmtDt(e.start)}` : '';
+
+    // Build the exposure box (same visual style as tracker elapsed-box)
+    const exposureBox = displayExposure ? `
+      <div style="background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:10px 14px;margin-bottom:10px;">
+        <div style="font-size:10px;font-weight:700;letter-spacing:0.06em;text-transform:uppercase;color:var(--text3);margin-bottom:3px">Kokonaisvalotusaika</div>
+        <div style="font-family:'Lora',serif;font-size:22px;font-weight:600;color:var(--amber)">${esc(displayExposure)}</div>
+        ${timeRange?`<div style="font-size:11px;color:var(--text3);margin-top:2px">${esc(timeRange)}</div>`:''}
+      </div>` : (timeRange ? `
+      <div style="background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:10px 14px;margin-bottom:10px;">
+        <div style="font-size:10px;font-weight:700;letter-spacing:0.06em;text-transform:uppercase;color:var(--text3);margin-bottom:3px">Valotusaika</div>
+        <div style="font-size:13px;color:var(--text3);margin-top:2px">${esc(timeRange)}</div>
+      </div>` : '');
+
+    return `
+    <div class="diary-card">
+      <div class="diary-header">
+        <span class="diary-date">${e.date}</span>
+        <span class="diary-stars">${stars[e.rating||3]}/5</span>
+      </div>
+      <div class="diary-chips" style="margin-bottom:${exposureBox?'10px':'6px'}">
+        ${e.camera?`<span class="chip">${esc(e.camera)}</span>`:''}
+        ${e.material?`<span class="chip">${esc(e.material)}</span>`:''}
+        ${e.weather?`<span class="chip">${esc(e.weather)}</span>`:''}
+      </div>
+      ${exposureBox}
+      <div class="diary-text">${esc(e.notes)}</div>
+      ${(e.tags||[]).length?`<div class="diary-tags">${(e.tags||[]).map(t=>`<span class="tag">${esc(t)}</span>`).join('')}</div>`:''}
+      <div style="margin-top:10px;display:flex;gap:6px;flex-wrap:wrap">
+        <button type="button" class="btn btn-ghost btn-sm" onclick="editDiary(${e.id})">Muokkaa</button>
+        <button type="button" class="btn btn-ghost btn-sm" style="color:var(--red)" onclick="removeDiary(${e.id})">Poista</button>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function removeDiary(id) {
+  if (!confirm('Poistetaanko päiväkirjamerkintä?')) return;
+  diary=diary.filter(e=>e.id!==id); save(); renderDiary();
+}
+
+/* ── EXPORT / IMPORT ── */
+
+function updateExportCounts() {
+  document.getElementById('exp-cameras-count').textContent   = cameras.length   + ' kpl';
+  document.getElementById('exp-diary-count').textContent     = diary.length      + ' kpl';
+  document.getElementById('exp-reminders-count').textContent = reminders.length  + ' kpl';
+  document.getElementById('exp-weather-count').textContent   = weather.length    + ' kpl';
+  updateExportPreview();
+}
+
+function updateExportPreview() {
+  const fmt = document.querySelector('input[name="exp-format"]:checked')?.value || 'json';
+  const parts = [];
+  if (document.getElementById('exp-cameras')?.checked   && cameras.length)   parts.push(`Seuranta (${cameras.length})`);
+  if (document.getElementById('exp-diary')?.checked     && diary.length)      parts.push(`Päiväkirja (${diary.length})`);
+  if (document.getElementById('exp-reminders')?.checked && reminders.length)  parts.push(`Muistutukset (${reminders.length})`);
+  if (document.getElementById('exp-weather')?.checked   && weather.length)    parts.push(`Säätiloki (${weather.length})`);
+  const el = document.getElementById('exp-preview');
+  if (!parts.length) {
+    el.textContent = 'Valitse vähintään yksi tietotyyppi.';
+    return;
+  }
+  el.textContent = `Viedään ${fmt.toUpperCase()}-tiedostoon: ${parts.join(', ')}`;
+}
+
+// Wire up checkboxes and radio buttons to update preview
+document.addEventListener('DOMContentLoaded', () => {
+  ['exp-cameras','exp-diary','exp-reminders','exp-weather'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.addEventListener('change', updateExportPreview);
+  });
+  document.querySelectorAll('input[name="exp-format"]').forEach(r => r.addEventListener('change', updateExportPreview));
+});
+
+function doExport() {
+  const inclCameras   = document.getElementById('exp-cameras').checked;
+  const inclDiary     = document.getElementById('exp-diary').checked;
+  const inclReminders = document.getElementById('exp-reminders').checked;
+  const inclWeather   = document.getElementById('exp-weather').checked;
+  const fmt = document.querySelector('input[name="exp-format"]:checked')?.value || 'json';
+
+  if (!inclCameras && !inclDiary && !inclReminders && !inclWeather) {
+    alert('Valitse vähintään yksi tietotyyppi.'); return;
+  }
+
+  const ts = new Date().toISOString().slice(0,10);
+
+  if (fmt === 'json') {
+    const payload = { exportedAt: new Date().toISOString(), version: 1 };
+    if (inclCameras)   payload.cameras   = cameras;
+    if (inclDiary)     payload.diary     = diary;
+    if (inclReminders) payload.reminders = reminders;
+    if (inclWeather)   payload.weather   = weather;
+    downloadText(JSON.stringify(payload, null, 2), `neulanreika_${ts}.json`, 'application/json');
+
+  } else {
+    // CSV — one file per selected type
+    const files = [];
+    if (inclCameras && cameras.length) {
+      const h = 'id,nimi,sijainti,materiaali,asetettu,haettu,suunniteltu,tila,muistiinpanot';
+      const rows = cameras.map(c => [c.id,c.name,c.location||'',c.material,c.date||'',c.doneAt||'',c.planned,c.status,c.notes||''].map(csvCell).join(','));
+      files.push({ name: `seuranta_${ts}.csv`, content: [h,...rows].join('\n') });
+    }
+    if (inclDiary && diary.length) {
+      const h = 'id,paivamaara,kamera,materiaali,valotus_alkoi,valotus_loppui,valotusaika,saa,arvosana,huomiot,tagit';
+      const rows = diary.map(e => [e.id,e.date,e.camera||'',e.material||'',e.start||'',e.end||'',e.exposure||'',e.weather||'',e.rating||'',e.notes,(e.tags||[]).join(';')].map(csvCell).join(','));
+      files.push({ name: `paivakirja_${ts}.csv`, content: [h,...rows].join('\n') });
+    }
+    if (inclReminders && reminders.length) {
+      const h = 'id,nimi,paivamaara,kamera,huomautus,valotus_alkoi,valotus_loppui,tehty';
+      const rows = reminders.map(r => [r.id,r.name,r.date||'',r.camera||'',r.note||'',r.expStart||'',r.expEnd||'',r.done?'kyllä':'ei'].map(csvCell).join(','));
+      files.push({ name: `muistutukset_${ts}.csv`, content: [h,...rows].join('\n') });
+    }
+    if (inclWeather && weather.length) {
+      const h = 'id,aika,saa,lampotila,kamera,huomiot';
+      const rows = weather.map(w => [w.id,w.datetime||'',w.desc||'',w.temp||'',w.camera||'',w.notes||''].map(csvCell).join(','));
+      files.push({ name: `saatiloki_${ts}.csv`, content: [h,...rows].join('\n') });
+    }
+    if (!files.length) { alert('Ei vietävää dataa.'); return; }
+    files.forEach(f => downloadText(f.content, f.name, 'text/csv;charset=utf-8'));
+  }
+}
+
+function csvCell(v) { return `"${String(v==null?'':v).replace(/"/g,'""')}"`; }
+
+function downloadText(content, filename, mime) {
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(new Blob(['\uFEFF'+content], {type: mime}));
+  a.download = filename;
+  a.click();
+  setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+}
+
+// ── IMPORT ──
+
+let _importData = null;
+
+function previewImport() {
+  const file = document.getElementById('imp-file').files[0];
+  const preview = document.getElementById('imp-preview');
+  const result  = document.getElementById('imp-result');
+  result.style.display = 'none';
+  _importData = null;
+
+  if (!file) { preview.style.display='none'; return; }
+  if (!file.name.endsWith('.json')) {
+    showImportResult('error', 'Tuettu formaatti on JSON. Vie tiedot ensin JSON-muodossa.'); return;
+  }
+
+  const reader = new FileReader();
+  reader.onload = e => {
+    try {
+      const data = JSON.parse(e.target.result);
+      _importData = data;
+
+      const content = document.getElementById('imp-preview-content');
+      content.innerHTML = '';
+      const checks = [
+        { key:'cameras',   label:'Seuranta',     wrap:'imp-cb-cameras-wrap',   cb:'imp-cameras' },
+        { key:'diary',     label:'Päiväkirja',   wrap:'imp-cb-diary-wrap',     cb:'imp-diary' },
+        { key:'reminders', label:'Muistutukset', wrap:'imp-cb-reminders-wrap', cb:'imp-reminders' },
+        { key:'weather',   label:'Säätiloki',    wrap:'imp-cb-weather-wrap',   cb:'imp-weather' },
+      ];
+
+      let found = 0;
+      checks.forEach(c => {
+        const arr = data[c.key];
+        const wrap = document.getElementById(c.wrap);
+        if (Array.isArray(arr) && arr.length) {
+          content.innerHTML += `<div style="font-size:13px;color:var(--text2)"><strong style="color:var(--text)">${c.label}:</strong> ${arr.length} merkintää</div>`;
+          wrap.style.display = 'flex';
+          found++;
+        } else {
+          wrap.style.display = 'none';
+        }
+      });
+
+      if (!found) {
+        showImportResult('error', 'Tiedostosta ei löytynyt tunnistettavaa dataa.');
+        preview.style.display = 'none'; return;
+      }
+
+      if (data.exportedAt) {
+        content.innerHTML += `<div style="font-size:11px;color:var(--text4);margin-top:4px">Viety: ${new Date(data.exportedAt).toLocaleString('fi-FI')}</div>`;
+      }
+
+      preview.style.display = 'block';
+    } catch {
+      showImportResult('error', 'Tiedoston lukeminen epäonnistui. Varmista että tiedosto on kelvollinen JSON.');
+      preview.style.display = 'none';
+    }
+  };
+  reader.readAsText(file);
+}
+
+function doImport() {
+  if (!_importData) return;
+
+  let added = { cameras:0, diary:0, reminders:0, weather:0 };
+
+  function mergeById(existing, incoming) {
+    const ids = new Set(existing.map(x=>x.id));
+    const newItems = incoming.filter(x => !ids.has(x.id));
+    return { merged: [...existing, ...newItems], count: newItems.length };
+  }
+
+  if (document.getElementById('imp-cameras').checked && Array.isArray(_importData.cameras)) {
+    const r = mergeById(cameras, _importData.cameras);
+    cameras = r.merged; added.cameras = r.count;
+  }
+  if (document.getElementById('imp-diary').checked && Array.isArray(_importData.diary)) {
+    const r = mergeById(diary, _importData.diary);
+    diary = r.merged; added.diary = r.count;
+    // Sort diary newest first
+    diary.sort((a,b) => (b.id||0) - (a.id||0));
+  }
+  if (document.getElementById('imp-reminders').checked && Array.isArray(_importData.reminders)) {
+    const r = mergeById(reminders, _importData.reminders);
+    reminders = r.merged; added.reminders = r.count;
+  }
+  if (document.getElementById('imp-weather').checked && Array.isArray(_importData.weather)) {
+    const r = mergeById(weather, _importData.weather);
+    weather = r.merged; added.weather = r.count;
+  }
+
+  save();
+  updateExportCounts();
+
+  const parts = [];
+  if (added.cameras)   parts.push(`${added.cameras} seurantamerkintää`);
+  if (added.diary)     parts.push(`${added.diary} päiväkirjamerkintää`);
+  if (added.reminders) parts.push(`${added.reminders} muistutusta`);
+  if (added.weather)   parts.push(`${added.weather} säämerkintää`);
+
+  if (!parts.length) {
+    showImportResult('info', 'Kaikki tiedostossa olevat merkinnät ovat jo olemassa — ei uusia tuotavia.');
+  } else {
+    showImportResult('success', `Tuotu onnistuneesti: ${parts.join(', ')}.`);
+  }
+
+  // Reset file input
+  document.getElementById('imp-file').value = '';
+  document.getElementById('imp-preview').style.display = 'none';
+  _importData = null;
+}
+
+function showImportResult(type, msg) {
+  const el = document.getElementById('imp-result');
+  const styles = {
+    success: { bg:'var(--green-bg)', bd:'var(--green-bd)', color:'var(--green-dk)', icon:'✓' },
+    error:   { bg:'var(--red-bg)',   bd:'var(--red-bd)',   color:'var(--red)',      icon:'!' },
+    info:    { bg:'var(--amber-bg)', bd:'var(--amber-bd)', color:'var(--amber)',    icon:'i' },
+  };
+  const s = styles[type] || styles.info;
+  el.style.cssText = `display:flex;gap:10px;align-items:flex-start;padding:12px 14px;border-radius:6px;background:${s.bg};border:1px solid ${s.bd};font-size:13px;color:${s.color}`;
+  el.innerHTML = `<span style="font-weight:800;flex-shrink:0">${s.icon}</span><span>${esc(msg)}</span>`;
+}
+
+
+calcExposure(); calcOptimal(); updateBadge(); initDiaryListeners();
+</script>
+</body>
+</html>
