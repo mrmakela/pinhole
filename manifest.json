@@ -1,0 +1,59 @@
+{
+  "name": "Neulanreikäkamera",
+  "short_name": "Neulanreikä",
+  "description": "Neulanreikäkameran opas, seuranta ja kuvauspäiväkirja",
+  "start_url": "./neulanreika.html",
+  "display": "standalone",
+  "orientation": "portrait-primary",
+  "background_color": "#1e1810",
+  "theme_color": "#1e1810",
+  "lang": "fi",
+  "categories": ["photography", "utilities"],
+  "icons": [
+    {
+      "src": "icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "maskable"
+    },
+    {
+      "src": "icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ],
+  "screenshots": [],
+  "shortcuts": [
+    {
+      "name": "Seuranta",
+      "short_name": "Seuranta",
+      "description": "Avaa kamera-seuranta",
+      "url": "./neulanreika.html#seuranta"
+    },
+    {
+      "name": "Päiväkirja",
+      "short_name": "Päiväkirja",
+      "description": "Avaa kuvauspäiväkirja",
+      "url": "./neulanreika.html#paivakirja"
+    },
+    {
+      "name": "Laskuri",
+      "short_name": "Laskuri",
+      "description": "Valotusaikalaskuri",
+      "url": "./neulanreika.html#laskuri"
+    }
+  ]
+}
