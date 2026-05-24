@@ -40,15 +40,16 @@
 <script>
 if(localStorage.getItem('ph2-theme')==='dark')document.documentElement.classList.add('dark');
 
-// Register Service Worker
-// Works on GitHub Pages (/repo/), Netlify (/), or any subdirectory
+// Register Service Worker — works on GitHub Pages /repo/, Netlify /, etc.
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {
-    // Derive the base path from the current page location
-    const swPath = window.location.pathname.replace(/\/[^\/]*$/, '/') + 'sw.js';
-    navigator.serviceWorker.register(swPath, { scope: window.location.pathname.replace(/\/[^\/]*$/, '/') })
-      .then(reg => console.log('SW registered, scope:', reg.scope))
-      .catch(err => console.log('SW registration failed:', err));
+    // Build SW path relative to current page's directory
+    const base = window.location.pathname.endsWith('/')
+      ? window.location.pathname
+      : window.location.pathname.substring(0, window.location.pathname.lastIndexOf('/') + 1);
+    navigator.serviceWorker.register(base + 'sw.js', { scope: base })
+      .then(reg => console.log('SW registered:', reg.scope))
+      .catch(err => console.warn('SW registration failed:', err));
   });
 }
 </script>
@@ -2741,6 +2742,24 @@ function showImportResult(type, msg) {
 
 
 calcExposure(); calcOptimal(); updateBadge(); initDiaryListeners(); renderTracker(); renderCamdb();
+
+// Handle ?tab= query parameter from PWA shortcuts
+(function handleTabParam() {
+  const params = new URLSearchParams(window.location.search);
+  const tab = params.get('tab');
+  if (tab) {
+    const pill = document.querySelector(`.nav-pill[onclick*="'${tab}'"]`);
+    if (pill) {
+      pill.click();
+    } else {
+      // Could be a dropdown section
+      const ddItem = document.querySelector(`.nav-dropdown-item[onclick*="'${tab}'"]`);
+      if (ddItem) ddItem.click();
+    }
+    // Clean the URL without reloading
+    window.history.replaceState({}, '', window.location.pathname);
+  }
+})();
 </script>
 </body>
 </html>
